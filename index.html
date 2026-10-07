@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>4-4반 통합 학급 프로그램 포털</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', 'Malgun Gothic', -apple-system, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #090a0f linear-gradient(135deg, #090e1a 0%, #081b2e 40%, #002b4d 70%, #090a0f 100%);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 상단 내비게이션 바 */
+    header {
+      background: rgba(13, 25, 48, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #38bdf8;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      padding: 9px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    /* 메인 선택 홈 화면 */
+    .portal-home {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .portal-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+
+    .portal-subtitle {
+      color: #94a3b8;
+      font-size: 1.05rem;
+      margin-bottom: 45px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+      gap: 30px;
+      width: 100%;
+      max-width: 800px;
+      justify-content: center;
+    }
+
+    .program-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 20px;
+      padding: 35px 25px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .program-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .program-card:hover {
+      transform: translateY(-8px);
+      border-color: #38bdf8;
+      box-shadow: 0 12px 40px rgba(56, 189, 248, 0.3);
+    }
+
+    .program-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .enter-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.3);
+    }
+
+    .enter-btn:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+    }
+
+    /* 프로그램 화면 출력용 iframe */
+    .app-viewport {
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 60px);
+      border: none;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 내비게이션 -->
+  <header>
+    <div class="logo" onclick="showHome()">
+      <span>✨ 4-4반 학급 포털</span>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn active" id="btnHome" onclick="showHome()">🏠 홈</button>
+      <button class="nav-btn" id="btnAsset" onclick="loadProgram('asset')">💰 자산관리</button>
+      <button class="nav-btn" id="btnBank" onclick="loadProgram('bank')">🏦 은행관리</button>
+    </div>
+  </header>
+
+  <!-- 메인 선택 화면 -->
+  <div class="portal-home" id="portalHome">
+    <h1 class="portal-title">4-4반 학급 관리 포털</h1>
+    <p class="portal-subtitle">이용하실 학급 프로그램을 아래에서 선택하세요</p>
+
+    <div class="card-grid">
+      <!-- 자산관리 카드 -->
+      <div class="program-card" onclick="loadProgram('asset')">
+        <div class="card-icon">💎</div>
+        <h2 class="card-title">4-4반 자산관리</h2>
+        <p class="card-desc">
+          월급, 퀴즈, 미션 등록부터 간식·자리배정 차감까지!<br>
+          학생별 현재 실시간 자산 잔액을 조회하고 관리합니다.
+        </p>
+        <button class="enter-btn">자산관리 접속하기 ➔</button>
+      </div>
+
+      <!-- 은행관리 카드 -->
+      <div class="program-card" onclick="loadProgram('bank')">
+        <div class="card-icon">🪐</div>
+        <h2 class="card-title">4-4반 은행관리</h2>
+        <p class="card-desc">
+          정기예금·정기적금 저금 기록 및 TOP 10 리더보드!<br>
+          AI 도우미, 날씨, 10월 급식, 시간표 및 체크리스트 연동.
+        </p>
+        <button class="enter-btn">은행관리 접속하기 ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로그램 프레임 -->
+  <iframe id="appFrame" class="app-viewport"></iframe>
+
+  <script>
+    // 입력해주신 자산관리.html 코드 내장
+    const assetHtmlSrc = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4-4반 자산관리 프로그램</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; color: #fff; }
+    .app-container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.3fr; gap: 25px; }
+    @media (max-width: 850px) { .app-container { grid-template-columns: 1fr; } }
+    .glass-card { background: rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.25); padding: 25px; height: fit-content; }
+    h1, h2 { text-align: center; margin-bottom: 20px; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: rgba(255, 255, 255, 0.9); }
+    select, input { width: 100%; padding: 11px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); outline: none; color: #fff; font-size: 0.95rem; transition: all 0.3s ease; }
+    select option { background: #4a549d; color: #fff; }
+    select:focus, input:focus { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.6); box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+    .btn-submit { width: 100%; padding: 13px; border: none; border-radius: 12px; background: rgba(255, 255, 255, 0.3); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.4); margin-top: 5px; }
+    .btn-submit:hover { background: rgba(255, 255, 255, 0.45); transform: translateY(-2px); }
+    .btn-reset { background: rgba(255, 99, 132, 0.3); border-color: rgba(255, 99, 132, 0.5); font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; color: #fff; cursor: pointer; transition: all 0.3s ease; }
+    .btn-reset:hover { background: rgba(255, 99, 132, 0.6); }
+    .alert-box { margin-top: 15px; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); text-align: center; font-size: 0.9rem; display: none; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
+    .table-tools { display: flex; gap: 8px; align-items: center; }
+    .search-input { padding: 8px 12px; font-size: 0.85rem; border-radius: 10px; width: 140px; }
+    .table-wrapper { max-height: 480px; overflow-y: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .table-wrapper::-webkit-scrollbar { width: 6px; }
+    .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+    th { position: sticky; top: 0; background: rgba(74, 84, 157, 0.9); backdrop-filter: blur(5px); font-weight: 700; }
+    tr:hover { background: rgba(255, 255, 255, 0.1); }
+    .admin-tag { background: rgba(255, 193, 7, 0.3); padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(255, 193, 7, 0.5); }
+    .amount-plus { color: #71e5a1; font-weight: 600; }
+    .amount-minus { color: #ff8a8a; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="glass-card">
+      <h1>4-4반 자산 등록</h1>
+      <form id="assetForm">
+        <div class="form-group"><label for="studentName">이름 선택</label><select id="studentName" required><option value="" disabled selected>학생 이름을 선택하세요</option></select></div>
+        <div class="form-group"><label for="transactionType">구분 선택</label><select id="transactionType" required onchange="updateCategoryOptions()"><option value="" disabled selected>자산추가 또는 차감을 선택하세요</option><option value="add">자산추가 (+)</option><option value="subtract">차감 (-)</option></select></div>
+        <div class="form-group"><label for="category">상세 항목</label><select id="category" required disabled><option value="" disabled selected>구분을 먼저 선택하세요</option></select></div>
+        <div class="form-group"><label for="amount">금액</label><input type="number" id="amount" placeholder="금액을 입력하세요" min="1" required></div>
+        <button type="submit" class="btn-submit">등록하기</button>
+      </form>
+      <div id="alertBox" class="alert-box"></div>
+    </div>
+    <div class="glass-card">
+      <div class="table-header">
+        <h2>학생별 자산 현황표</h2>
+        <div class="table-tools">
+          <input type="text" id="searchInput" class="search-input" placeholder="이름 검색..." oninput="filterTable()">
+          <button type="button" class="btn-reset" onclick="resetAllData()">초기화</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>번호</th><th>이름</th><th>현재 자산</th></tr></thead>
+          <tbody id="assetTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script>
+    const STORAGE_KEY = "class4_4_assets_data";
+    const studentList = ["김예은", "김윤솔", "김재은", "나헤지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN님", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
+    let studentAssets = {};
+    const categoryData = { add: ["월급", "QUIZ", "미션", "선생님보너스"], subtract: ["적금예금", "뽑기", "간식", "자리배정"] };
+    window.onload = function() { initData(); initStudentSelect(); renderAssetTable(); };
+    function initData() {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        studentAssets = JSON.parse(savedData);
+        studentList.forEach(name => { if (studentAssets[name] === undefined) studentAssets[name] = 0; });
+      } else {
+        studentList.forEach(name => { studentAssets[name] = 0; });
+        saveData();
+      }
+    }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); }
+    function resetAllData() {
+      if (confirm("정말로 모든 학생의 자산 데이터를 0원으로 초기화하시겠습니까?")) {
+        studentList.forEach(name => { studentAssets[name] = 0; });
+        saveData(); renderAssetTable(); alert("모든 자산 데이터가 초기화되었습니다.");
+      }
+    }
+    function initStudentSelect() {
+      const select = document.getElementById("studentName");
+      select.innerHTML = '<option value="" disabled selected>학생 이름을 선택하세요</option>';
+      studentList.forEach(name => {
+        const option = document.createElement("option"); option.value = name; option.textContent = name; select.appendChild(option);
+      });
+    }
+    function updateCategoryOptions() {
+      const type = document.getElementById("transactionType").value;
+      const categorySelect = document.getElementById("category");
+      categorySelect.innerHTML = '<option value="" disabled selected>상세 항목을 선택하세요</option>';
+      categorySelect.disabled = false;
+      if (categoryData[type]) {
+        categoryData[type].forEach(item => {
+          const option = document.createElement("option"); option.value = item; option.textContent = item; categorySelect.appendChild(option);
+        });
+      }
+    }
+    function renderAssetTable(filterText = "") {
+      const tbody = document.getElementById("assetTableBody"); tbody.innerHTML = ""; let index = 1;
+      studentList.forEach(name => {
+        if (name.includes(filterText)) {
+          const row = document.createElement("tr"); const balance = studentAssets[name] || 0; const isAdmin = name.includes("ADMIN");
+          row.innerHTML = \`<td>\${index++}</td><td>\${name} \${isAdmin ? '<span class="admin-tag">관리자</span>' : ''}</td><td class="\${balance >= 0 ? 'amount-plus' : 'amount-minus'}">\${balance.toLocaleString()} 원</td>\`;
+          tbody.appendChild(row);
+        }
+      });
+    }
+    function filterTable() { renderAssetTable(document.getElementById("searchInput").value.trim()); }
+    document.getElementById("assetForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("studentName").value;
+      const type = document.getElementById("transactionType").value;
+      const category = document.getElementById("category").value;
+      const amount = parseInt(document.getElementById("amount").value, 10);
+      if (isNaN(amount) || amount <= 0) return;
+      if (type === "add") studentAssets[name] += amount;
+      else if (type === "subtract") studentAssets[name] -= amount;
+      saveData();
+      renderAssetTable(document.getElementById("searchInput").value.trim());
+      const typeText = type === "add" ? "추가" : "차감";
+      const alertBox = document.getElementById("alertBox");
+      alertBox.style.display = "block";
+      alertBox.innerHTML = \`<strong>[등록 및 저장 완료]</strong><br>\${name} - \${category} (\${typeText}) \${amount.toLocaleString()}원<br><strong>현재 자산: \${studentAssets[name].toLocaleString()}원</strong>\`;
+      document.getElementById("assetForm").reset();
+      document.getElementById("category").disabled = true;
+      document.getElementById("category").innerHTML = '<option value="" disabled selected>구분을 먼저 선택하세요</option>';
+    });
+  <\/script>
+</body>
+</html>`;
+
+    // 입력해주신 은행관리.html 코드 내장
+    const bankHtmlSrc = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>4-4반 은행 관리 프로그램</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+    <style>
+        html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+        :root { --bg-gradient: #090a0f linear-gradient(135deg, #090e1a 0%, #081b2e 40%, #002b4d 70%, #090a0f 100%); --text-color: #e2e8f0; --container-bg: rgba(13, 25, 48, 0.85); --container-border: rgba(56, 189, 248, 0.4); --container-shadow: 0 0 25px rgba(56, 189, 248, 0.25), inset 0 0 15px rgba(56, 189, 248, 0.1); --side-panel-bg: rgba(15, 23, 42, 0.9); --side-panel-border: rgba(239, 68, 68, 0.4); --input-bg: rgba(15, 23, 42, 0.8); --input-border: #0284c7; --input-color: #f1f5f9; --table-bg: rgba(15, 23, 42, 0.6); --table-border: rgba(56, 189, 248, 0.3); --th-bg: rgba(14, 165, 233, 0.15); --td-color: #cbd5e1; --card-bg: rgba(30, 41, 59, 0.5); --star-opacity: 0.6; }
+        body.light-mode { --bg-gradient: #f8fafc linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 40%, #cbd5e1 70%, #f8fafc 100%); --text-color: #1e293b; --container-bg: rgba(255, 255, 255, 0.9); --container-border: rgba(2, 132, 199, 0.3); --container-shadow: 0 0 25px rgba(2, 132, 199, 0.15), inset 0 0 15px rgba(2, 132, 199, 0.05); --side-panel-bg: rgba(241, 245, 249, 0.95); --side-panel-border: rgba(239, 68, 68, 0.3); --input-bg: rgba(255, 255, 255, 0.9); --input-border: #38bdf8; --input-color: #0f172a; --table-bg: rgba(255, 255, 255, 0.8); --table-border: rgba(2, 132, 199, 0.2); --th-bg: rgba(56, 189, 248, 0.2); --td-color: #334155; --card-bg: rgba(241, 245, 249, 0.8); --star-opacity: 0.15; }
+        body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg-gradient); background-attachment: fixed; margin: 0; padding: 20px; color: var(--text-color); position: relative; min-height: 100vh; overflow-x: hidden; transition: background 0.8s ease, color 0.5s ease; }
+        body.aurora-mode { background: linear-gradient(135deg, #2e1065 0%, #0f172a 30%, #0284c7 70%, #581c87 100%) !important; background-attachment: fixed !important; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)), radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)), radial-gradient(2px 2px at 160px 120px, #60a5fa, rgba(0,0,0,0)), radial-gradient(1.5px 1.5px at 230px 190px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 310px 80px, #38bdf8, rgba(0,0,0,0)); background-repeat: repeat; background-size: 350px 350px; opacity: var(--star-opacity); pointer-events: none; z-index: 0; transition: opacity 0.5s ease; }
+        .main-layout { display: flex; gap: 20px; max-width: 1100px; margin: 0 auto; align-items: flex-start; position: relative; z-index: 1; }
+        .container { flex: 1; background: var(--container-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 25px; border-radius: 20px; box-shadow: var(--container-shadow); border: 1px solid var(--container-border); transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease; }
+        .admin-side-panel { width: 260px; background: var(--side-panel-bg); backdrop-filter: blur(10px); border: 1px solid var(--side-panel-border); border-radius: 16px; padding: 18px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); transition: background 0.5s ease, border 0.5s ease; }
+        .admin-panel-title { font-size: 15px; font-weight: bold; color: #fca5a5; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+        .admin-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
+        .admin-item { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; transition: background 0.5s ease; }
+        .admin-item:last-child { margin-bottom: 0; }
+        .admin-item.super-admin { border-color: #fde047; background: rgba(253, 224, 71, 0.1); }
+        .admin-item .name { font-weight: bold; color: var(--text-color); }
+        .admin-item.super-admin .name { color: #d97706; }
+        body:not(.light-mode) .admin-item.super-admin .name { color: #fde047; }
+        .role-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .role-super { background: #fde047; color: #0f172a; }
+        .role-sub { background: rgba(56, 189, 248, 0.2); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.4); }
+        body:not(.light-mode) .role-sub { color: #38bdf8; }
+        .role-temp { background: rgba(148, 163, 184, 0.2); color: #64748b; border: 1px solid rgba(148, 163, 184, 0.4); }
+        body:not(.light-mode) .role-temp { color: #cbd5e1; }
+        .role-banker { background: rgba(52, 211, 153, 0.2); color: #059669; border: 1px solid rgba(52, 211, 153, 0.4); cursor: pointer; }
+        body:not(.light-mode) .role-banker { color: #6ee7b7; }
+        .restore-panel-btn { width: 100%; padding: 10px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; border: 1px solid #fbbf24; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); transition: all 0.2s; margin-bottom: 12px; }
+        .restore-panel-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(245, 158, 11, 0.6); }
+        .timetable-box { background: var(--card-bg); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 12px; box-shadow: inset 0 0 10px rgba(52, 211, 153, 0.1); margin-bottom: 20px; transition: background 0.5s ease; }
+        .timetable-title { font-size: 13.5px; font-weight: bold; color: #059669; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        body:not(.light-mode) .timetable-title { color: #6ee7b7; }
+        .timetable-list { list-style: none; padding: 0; margin: 0; font-size: 12.5px; }
+        .timetable-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.2); color: var(--td-color); }
+        .timetable-item:last-child { border-bottom: none; }
+        .timetable-item.today-class { color: #0284c7; font-weight: bold; }
+        body:not(.light-mode) .timetable-item.today-class { color: #38bdf8; }
+        .checklist-box { background: var(--card-bg); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 12px; padding: 12px; box-shadow: inset 0 0 10px rgba(2, 132, 199, 0.1); margin-bottom: 20px; transition: background 0.5s ease; }
+        .checklist-title { font-size: 13.5px; font-weight: bold; color: #0284c7; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        body:not(.light-mode) .checklist-title { color: #38bdf8; }
+        .checklist-wrapper { max-height: 250px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.2); padding: 4px; }
+        .checklist-list { list-style: none; padding: 0; margin: 0; }
+        .checklist-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px dashed rgba(148, 163, 184, 0.2); font-size: 13px; cursor: pointer; transition: background 0.2s; border-radius: 6px; }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item:hover { background: rgba(2, 132, 199, 0.15); }
+        .checklist-item .student-name { font-weight: bold; color: var(--text-color); }
+        .checklist-right { display: flex; align-items: center; gap: 6px; }
+        .checklist-count { background: rgba(2, 132, 199, 0.2); color: #0284c7; padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+        body:not(.light-mode) .checklist-count { color: #38bdf8; background: rgba(56, 189, 248, 0.2); }
+        .checklist-del-btn { background: rgba(239, 68, 68, 0.2); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+        body:not(.light-mode) .checklist-del-btn { color: #fca5a5; }
+        .checklist-del-btn:hover { background: #ef4444; color: white; }
+        .side-card-box { background: var(--card-bg); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px; box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1); transition: background 0.5s ease; }
+        .weather-card { text-align: center; }
+        .weather-main-info { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0; }
+        .weather-icon { font-size: 28px; }
+        .weather-temp { font-size: 22px; font-weight: bold; color: #0284c7; text-shadow: 0 0 8px rgba(2, 132, 199, 0.3); }
+        body:not(.light-mode) .weather-temp { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+        .weather-desc { font-size: 13px; color: var(--td-color); }
+        .ai-chat-box { background: var(--card-bg); border: 1px solid rgba(167, 139, 250, 0.4); border-radius: 12px; padding: 12px; box-shadow: inset 0 0 10px rgba(167, 139, 250, 0.1); margin-bottom: 20px; transition: background 0.5s ease; }
+        .ai-chat-messages { height: 180px; overflow-y: auto; border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; padding: 8px; margin-bottom: 8px; background: rgba(15, 23, 42, 0.4); display: flex; flex-direction: column; gap: 6px; }
+        body.light-mode .ai-chat-messages { background: rgba(255, 255, 255, 0.5); }
+        .chat-msg { font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 10px; max-width: 85%; word-break: break-all; }
+        .chat-msg.bot { align-self: flex-start; background: rgba(124, 58, 237, 0.2); border: 1px solid rgba(167, 139, 250, 0.4); color: var(--text-color); }
+        .chat-msg.user { align-self: flex-end; background: rgba(2, 132, 199, 0.3); border: 1px solid rgba(56, 189, 248, 0.4); color: #ffffff; }
+        body.light-mode .chat-msg.user { color: #0f172a; }
+        .ai-input-group { display: flex; gap: 6px; }
+        .ai-input-group input { font-size: 12px !important; padding: 6px 10px !important; border-radius: 6px !important; }
+        .ai-send-btn { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #fff; border: 1px solid #a78bfa; border-radius: 6px; padding: 0 12px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .ai-send-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .refresh-icon-btn { background: transparent; border: none; color: #0284c7; font-size: 13px; cursor: pointer; padding: 0; }
+        body:not(.light-mode) .refresh-icon-btn { color: #38bdf8; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header-btn-group { display: flex; gap: 10px; align-items: center; }
+        h1 { color: #0284c7; margin: 0; font-size: 24px; text-shadow: 0 0 12px rgba(2, 132, 199, 0.4); letter-spacing: 1px; user-select: none; }
+        body:not(.light-mode) h1 { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.6); }
+        .clickable-title { cursor: pointer; transition: color 0.3s; }
+        .clickable-title:hover { color: #f59e0b; }
+        body:not(.light-mode) .clickable-title:hover { color: #fde047; }
+        .theme-toggle-btn { background: rgba(148, 163, 184, 0.2); color: var(--text-color); border: 1px solid rgba(148, 163, 184, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; }
+        .theme-toggle-btn:hover { transform: scale(1.05); background: rgba(148, 163, 184, 0.4); }
+        .admin-open-btn { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; border: 1px solid #fca5a5; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); transition: all 0.2s; }
+        .admin-open-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); }
+        .rule-info { background: rgba(6, 78, 59, 0.15); border: 1px solid rgba(52, 211, 153, 0.5); padding: 14px; border-radius: 12px; margin-bottom: 20px; font-size: 13.5px; color: #047857; line-height: 1.6; box-shadow: inset 0 0 10px rgba(52, 211, 153, 0.1); transition: background 0.5s ease, color 0.5s ease; }
+        body:not(.light-mode) .rule-info { background: rgba(6, 78, 59, 0.35); color: #6ee7b7; }
+        .rule-info .highlight { color: #d97706; font-weight: bold; }
+        body:not(.light-mode) .rule-info .highlight { color: #fde047; }
+        .notification-section { background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(167, 139, 250, 0.5); padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(167, 139, 250, 0.15); transition: background 0.5s ease; }
+        .notification-title { color: #7c3aed; font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        body:not(.light-mode) .notification-title { color: #c084fc; }
+        .notification-list { list-style: none; padding: 0; margin: 0; }
+        .notification-item { background: var(--card-bg); border: 1px solid rgba(167, 139, 250, 0.3); padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: background 0.5s ease; }
+        .notification-item:last-child { margin-bottom: 0; }
+        .notification-item strong { color: #d97706; }
+        body:not(.light-mode) .notification-item strong { color: #fde047; }
+        .notification-del-btn { background: rgba(239, 68, 68, 0.25); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.5); padding: 3px 8px; border-radius: 5px; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        body:not(.light-mode) .notification-del-btn { color: #fca5a5; }
+        .notification-del-btn:hover { background: rgba(239, 68, 68, 0.8); color: #fff; }
+        .empty-notification { color: #64748b; font-size: 13.5px; text-align: center; padding: 5px 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #0284c7; font-size: 14px; text-shadow: 0 0 5px rgba(2, 132, 199, 0.2); }
+        body:not(.light-mode) label { color: #7dd3fc; text-shadow: 0 0 5px rgba(125, 211, 252, 0.3); }
+        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 10px; box-sizing: border-box; font-size: 16px; color: var(--input-color); outline: none; transition: all 0.3s ease; }
+        input:focus, select:focus { border-color: #0284c7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.3); }
+        body:not(.light-mode) input:focus, body:not(.light-mode) select:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        select option { background: var(--input-bg); color: var(--input-color); }
+        button.add-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: 1px solid #38bdf8; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; box-shadow: 0 0 15px rgba(2, 132, 199, 0.3); }
+        button.add-btn:hover { background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); box-shadow: 0 0 20px rgba(2, 132, 199, 0.6); transform: translateY(-1px); }
+        .status-section { margin-top: 35px; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 16px; padding: 20px; transition: background 0.5s ease; }
+        .status-title { color: #0284c7; font-size: 18px; margin: 0 0 15px 0; border-bottom: 2px solid rgba(2, 132, 199, 0.3); padding-bottom: 10px; text-shadow: 0 0 8px rgba(2, 132, 199, 0.2); }
+        body:not(.light-mode) .status-title { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
+        .status-table-wrapper { max-height: 280px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.2); }
+        .status-table { width: 100%; border-collapse: collapse; margin: 0; }
+        .status-table th { position: sticky; top: 0; background: var(--side-panel-bg); z-index: 2; }
+        .badge-status { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .badge-done { background: rgba(16, 185, 129, 0.2); color: #047857; border: 1px solid rgba(16, 185, 129, 0.4); }
+        body:not(.light-mode) .badge-done { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+        .badge-none { background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid rgba(148, 163, 184, 0.3); }
+        body:not(.light-mode) .badge-none { color: #94a3b8; }
+        .leaderboard-section { margin-top: 35px; background: var(--table-bg); border: 1px solid var(--table-border); border-radius: 16px; padding: 20px; transition: background 0.5s ease; }
+        .leaderboard-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid rgba(2, 132, 199, 0.3); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        body:not(.light-mode) .leaderboard-title { border-bottom-color: rgba(56, 189, 248, 0.3); }
+        .leaderboard-title h2 { color: #d97706; font-size: 20px; margin: 0; text-shadow: 0 0 10px rgba(217, 119, 6, 0.3); }
+        body:not(.light-mode) .leaderboard-title h2 { color: #fde047; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
+        .tab-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tab-btn { background: var(--card-bg); color: var(--text-color); border: 1px solid rgba(148, 163, 184, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: #0284c7; color: #ffffff; border-color: #0284c7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.3); }
+        body:not(.light-mode) .tab-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .board-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 15px; margin-top: 15px; }
+        .board-card { background: var(--card-bg); border: 1px solid rgba(2, 132, 199, 0.2); border-radius: 12px; padding: 12px; transition: background 0.5s ease; }
+        body:not(.light-mode) .board-card { border-color: rgba(56, 189, 248, 0.2); }
+        .board-card h3 { font-size: 15px; margin: 0 0 10px 0; padding-bottom: 6px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); text-align: center; }
+        .board-card.deposit h3 { color: #0284c7; }
+        body:not(.light-mode) .board-card.deposit h3 { color: #38bdf8; }
+        .board-card.savings h3 { color: #7c3aed; }
+        body:not(.light-mode) .board-card.savings h3 { color: #a78bfa; }
+        .board-card.total h3 { color: #d97706; }
+        body:not(.light-mode) .board-card.total h3 { color: #fde047; }
+        .rank-list { list-style: none; padding: 0; margin: 0; }
+        .rank-item { display: flex; justify-content: space-between; padding: 6px 4px; font-size: 13px; border-bottom: 1px dashed rgba(148, 163, 184, 0.2); }
+        .rank-item:last-child { border-bottom: none; }
+        .rank-number { font-weight: bold; width: 25px; display: inline-block; }
+        .rank-1 { color: #d97706; font-weight: bold; }
+        body:not(.light-mode) .rank-1 { color: #fde047; font-weight: bold; }
+        .rank-2 { color: #475569; font-weight: bold; }
+        body:not(.light-mode) .rank-2 { color: #e2e8f0; font-weight: bold; }
+        .rank-3 { color: #c2410c; font-weight: bold; }
+        body:not(.light-mode) .rank-3 { color: #f97316; font-weight: bold; }
+        .empty-rank { text-align: center; color: #64748b; font-size: 12px; padding: 10px 0; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 35px; border-bottom: 1px solid rgba(2, 132, 199, 0.3); padding-bottom: 8px; flex-wrap: wrap; gap: 10px; }
+        body:not(.light-mode) .list-header { border-bottom-color: rgba(56, 189, 248, 0.3); }
+        h2.list-title { color: #0284c7; font-size: 18px; margin: 0; text-shadow: 0 0 8px rgba(2, 132, 199, 0.2); cursor: pointer; user-select: none; transition: transform 0.1s; }
+        body:not(.light-mode) h2.list-title { color: #7dd3fc; text-shadow: 0 0 8px rgba(125, 211, 252, 0.4); }
+        h2.list-title:active { transform: scale(0.97); }
+        .list-btn-group { display: flex; gap: 8px; }
+        .download-img-btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: 1px solid #34d399; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        .download-img-btn:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); }
+        .clear-all-btn { background: rgba(239, 68, 68, 0.15); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        body:not(.light-mode) .clear-all-btn { color: #fca5a5; background: rgba(239, 68, 68, 0.2); }
+        .clear-all-btn:hover { background: rgba(239, 68, 68, 0.4); color: #ffffff; }
+        .search-bar-box { margin-top: 15px; margin-bottom: 5px; }
+        .search-input { width: 100%; padding: 10px 14px; font-size: 14px !important; border-radius: 8px !important; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--input-color); }
+        #printableRecordSection { background: var(--table-bg); padding: 15px; border-radius: 12px; margin-top: 10px; border: 1px solid var(--table-border); transition: background 0.5s ease; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid rgba(148, 163, 184, 0.2); font-size: 14px; }
+        th { background-color: var(--th-bg); color: #0284c7; font-weight: 600; }
+        body:not(.light-mode) th { color: #38bdf8; }
+        td { color: var(--td-color); }
+        td strong { color: #0284c7; }
+        body:not(.light-mode) td strong { color: #38bdf8; }
+        .delete-btn { background-color: rgba(244, 63, 94, 0.15); color: #be123c; border: 1px solid rgba(244, 63, 94, 0.4); padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        body:not(.light-mode) .delete-btn { color: #fecdd3; background-color: rgba(244, 63, 94, 0.2); }
+        .delete-btn:hover { background-color: #e11d48; color: white; }
+        .restore-btn { background-color: rgba(16, 185, 129, 0.2); color: #047857; border: 1px solid rgba(16, 185, 129, 0.4); padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        body:not(.light-mode) .restore-btn { color: #6ee7b7; background-color: rgba(16, 185, 129, 0.25); }
+        .restore-btn:hover { background-color: #10b981; color: white; }
+        footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b; border-top: 1px dashed rgba(2, 132, 199, 0.2); padding-top: 15px; flex-wrap: wrap; gap: 10px; }
+        body:not(.light-mode) footer { border-top-color: rgba(56, 189, 248, 0.2); color: #94a3b8; }
+        .footer-company { color: #0284c7; font-weight: bold; text-shadow: 0 0 5px rgba(2, 132, 199, 0.2); }
+        body:not(.light-mode) .footer-company { color: #38bdf8; text-shadow: 0 0 5px rgba(56, 189, 248, 0.3); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; }
+        .modal-card { background: var(--side-panel-bg); border: 2px solid #ef4444; border-radius: 16px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.4); position: relative; color: var(--text-color); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(148, 163, 184, 0.3); padding-bottom: 12px; margin-bottom: 20px; }
+        .modal-title { color: #ef4444; font-size: 20px; margin: 0; font-weight: bold; }
+        .modal-close { background: transparent; border: none; color: #64748b; font-size: 20px; cursor: pointer; }
+        body:not(.light-mode) .modal-close { color: #94a3b8; }
+        .auth-modal-card { background: var(--side-panel-bg); border: 2px solid #ef4444; border-radius: 16px; width: 90%; max-width: 400px; padding: 25px; box-shadow: 0 0 35px rgba(239, 68, 68, 0.5); text-align: center; color: var(--text-color); }
+        .auth-modal-title { color: #ef4444; font-size: 18px; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
+        .auth-input { letter-spacing: 5px; font-size: 20px !important; text-align: center; margin-bottom: 15px; }
+        .auth-btn-group { display: flex; gap: 10px; }
+        .auth-btn { flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; }
+        .update-modal-card { background: var(--side-panel-bg); border: 2px solid #0284c7; border-radius: 16px; width: 90%; max-width: 500px; padding: 25px; box-shadow: 0 0 35px rgba(2, 132, 199, 0.4); text-align: center; color: var(--text-color); }
+        body:not(.light-mode) .update-modal-card { border-color: #38bdf8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.5); }
+        .update-modal-title { color: #0284c7; font-size: 20px; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
+        body:not(.light-mode) .update-modal-title { color: #38bdf8; }
+        .update-modal-body { color: var(--td-color); font-size: 14px; line-height: 1.6; margin-bottom: 20px; text-align: left; background: var(--card-bg); padding: 15px; border-radius: 10px; border: 1px solid rgba(2, 132, 199, 0.3); }
+        .update-modal-body ul { margin: 0; padding-left: 20px; }
+        .update-modal-body li { margin-bottom: 8px; }
+        .update-modal-body li:last-child { margin-bottom: 0; }
+        .update-confirm-btn { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: 1px solid #38bdf8; padding: 10px 25px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 0 10px rgba(2, 132, 199, 0.3); transition: all 0.2s; }
+        .update-confirm-btn:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(2, 132, 199, 0.6); }
+        .admin-section { background: var(--card-bg); border: 1px solid rgba(148, 163, 184, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; transition: background 0.5s ease; }
+        .admin-section-title { color: #d97706; font-size: 15px; font-weight: bold; margin-bottom: 12px; }
+        body:not(.light-mode) .admin-section-title { color: #fde047; }
+        .admin-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .admin-btn { padding: 8px 12px; border-radius: 6px; border: none; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-info { background: #06b6d4; color: white; }
+        .admin-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 5px; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #b91c1c; border: 1px solid #ef4444; }
+        body:not(.light-mode) .badge-red { background: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #047857; border: 1px solid #10b981; }
+        body:not(.light-mode) .badge-green { background: rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+        @media (max-width: 850px) { .main-layout { flex-direction: column; } .admin-side-panel { width: 100%; box-sizing: border-box; } }
+        .shooting-star { position: fixed; width: 120px; height: 2px; background: linear-gradient(90deg, #38bdf8, rgba(56, 189, 248, 0)); border-radius: 50%; filter: drop-shadow(0 0 6px #0284c7); transform: rotate(-35deg); pointer-events: none; z-index: 9999; animation: starFall 1.2s linear forwards; }
+        @keyframes starFall { 0% { opacity: 1; transform: translateX(0) translateY(0) rotate(-35deg); } 100% { opacity: 0; transform: translateX(-600px) translateY(600px) rotate(-35deg); } }
+        .rocket-ship { position: fixed; bottom: -80px; font-size: 60px; pointer-events: none; z-index: 9999; animation: launchRocket 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; filter: drop-shadow(0 0 15px #f97316); }
+        @keyframes launchRocket { 0% { bottom: -80px; opacity: 1; transform: scale(0.8) rotate(0deg); } 50% { transform: scale(1.2) rotate(-5deg); } 100% { bottom: 110vh; opacity: 0; transform: scale(1.5) rotate(0deg); } }
+        .coin-rain { position: fixed; top: -50px; font-size: 28px; pointer-events: none; z-index: 9999; animation: coinDrop 2s ease-in forwards; }
+        @keyframes coinDrop { 0% { top: -50px; opacity: 1; transform: rotate(0deg); } 100% { top: 105vh; opacity: 0; transform: rotate(720deg); } }
+        .nasi-rain { position: fixed; top: -50px; font-size: 32px; pointer-events: none; z-index: 9999; animation: nasiDrop 2s ease-in forwards; }
+        @keyframes nasiDrop { 0% { top: -50px; opacity: 1; transform: rotate(0deg); } 100% { top: 105vh; opacity: 0; transform: rotate(360deg); } }
+        .wish-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(50px); background: rgba(15, 23, 42, 0.95); border: 2px solid #f59e0b; color: #f59e0b; padding: 12px 24px; border-radius: 25px; font-weight: bold; font-size: 15px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); z-index: 10000; opacity: 0; transition: all 0.5s ease; pointer-events: none; text-align: center; }
+        body:not(.light-mode) .wish-toast { border-color: #fde047; color: #fde047; box-shadow: 0 0 20px rgba(253, 224, 71, 0.6); }
+        .wish-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+<div class="main-layout">
+    <div class="container">
+        <div class="header-bar">
+            <h1>✨ <span class="clickable-title" id="rocketTrigger" onclick="triggerRocketLaunch()">4-4반</span> 은행 관리 프로그램 ✨</h1>
+            <div class="header-btn-group">
+                <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">☀️ 라이트모드</button>
+                <button class="admin-open-btn" onclick="openAdminModal()">⚙️ Admin 로그인</button>
+            </div>
+        </div>
+        <div class="rule-info">
+            <strong>🚀 예금 규칙</strong><br>
+            • <strong>정기예금</strong>: 1회 <strong>최대 1,000원</strong>까지, 1인당 총 합계 <strong>최대 3,000원</strong>까지 가능<br>
+            • <strong>정기적금</strong>: 1인당 <strong>일주일에 1번만</strong>, 1회 <strong>최대 200원</strong>까지만 가능<br>
+            <span class="highlight">🎁 혜택: 정기적금으로 200원씩 총 3번 저금한 학생은 4주째에 800원으로 돌려받게 됩니다!</span><br>
+            <span style="font-size:12px;">👑 김지유ADMIN 대원은 모든 저금이 무제한 권한으로 기본 적용되어 있습니다.</span>
+        </div>
+        <div class="notification-section">
+            <div class="notification-title">🔔 알림 (적금 만기 및 반환 예정 목록)</div>
+            <ul class="notification-list" id="notificationList"></ul>
+        </div>
+        <div class="form-group"><label for="date">날짜</label><input type="date" id="date" onchange="loadSchoolMeal()"></div>
+        <div class="form-group">
+            <label for="name">이름 선택</label>
+            <select id="name">
+                <option value="">-- 이름을 선택하세요 --</option>
+                <option value="김예은">김예은</option><option value="김윤솔">김윤솔</option><option value="김재은">김재은</option><option value="나혜지">나혜지</option><option value="박솔아">박솔아</option><option value="박주아">박주아</option><option value="박준희">박준희</option><option value="송지아">송지아</option><option value="신다원">신다원</option><option value="전소현">전소현</option><option value="전시은">전시은</option><option value="주예진">주예진</option><option value="김규담">김규담</option><option value="김성현">김성현</option><option value="김지유ADMIN">김지유ADMIN 👑 (무제한)</option><option value="김혜준">김혜준</option><option value="박서한">박서한</option><option value="박우준">박우준</option><option value="신유찬">신유찬</option><option value="안재현">안재현</option><option value="이서빈">이서빈</option><option value="이승운">이승운</option><option value="이시우">이시우</option><option value="장재훈">장재훈</option><option value="전지훈">전지훈</option><option value="정유재">정유재</option>
+            </select>
+        </div>
+        <div class="form-group"><label for="amount">금액 (원)</label><input type="number" id="amount" placeholder="금액을 입력하세요" min="1" oninput="checkLuckySeven(this)"></div>
+        <div class="form-group">
+            <label for="type">예금 종류</label>
+            <select id="type">
+                <option value="정기예금">🪐 정기예금 (1회 1,000원 제한, 총 3,000원 한도)</option>
+                <option value="정기적금">🌟 정기적금 (주 1회, 최대 200원)</option>
+            </select>
+        </div>
+        <button class="add-btn" onclick="addRecord()">통장에 저금 기록하기!</button>
+        <div class="status-section">
+            <h2 class="status-title">📋 학생별 저금 참여 현황 (김예은 ~ 정유재)</h2>
+            <div class="status-table-wrapper">
+                <table class="status-table">
+                    <thead><tr><th>이름</th><th>정기예금</th><th>정기적금</th><th>총 저금액</th></tr></thead>
+                    <tbody id="studentStatusList"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="leaderboard-section">
+            <div class="leaderboard-title">
+                <h2>🏆 저금왕 TOP 10 리더보드</h2>
+                <div class="tab-group">
+                    <button class="tab-btn active" onclick="switchPeriod('today', this)">오늘</button>
+                    <button class="tab-btn" onclick="switchPeriod('week', this)">이번 주</button>
+                    <button class="tab-btn" onclick="switchPeriod('month', this)">이번 달</button>
+                    <button class="tab-btn" onclick="switchPeriod('all', this)">전체</button>
+                </div>
+            </div>
+            <div class="board-grid">
+                <div class="board-card deposit"><h3>🪐 정기예금 TOP 10</h3><ol class="rank-list" id="depositRankList"></ol></div>
+                <div class="board-card savings"><h3>🌟 정기적금 TOP 10</h3><ol class="rank-list" id="savingsRankList"></ol></div>
+                <div class="board-card total"><h3>👑 통합 저금왕 TOP 10</h3><ol class="rank-list" id="totalRankList"></ol></div>
+            </div>
+        </div>
+        <div class="list-header">
+            <h2 class="list-title" id="easterEggTrigger" onclick="triggerShootingStars()">🌠 전체 통장 기록</h2>
+            <div class="list-btn-group">
+                <button class="download-img-btn" onclick="downloadBankImage()">📸 통장 이미지 다운로드</button>
+                <button class="clear-all-btn" onclick="clearAllRecords()">전체 삭제</button>
+            </div>
+        </div>
+        <div class="search-bar-box">
+            <input type="text" id="recordSearchInput" class="search-input" placeholder="🔍 학생 이름 또는 예금 종류로 기록 검색..." onkeyup="filterRecords()">
+        </div>
+        <div id="printableRecordSection">
+            <table>
+                <thead><tr><th>날짜</th><th>이름</th><th>예금 종류</th><th>금액</th><th class="hide-on-capture">삭제</th></tr></thead>
+                <tbody id="recordList"></tbody>
+            </table>
+        </div>
+        <footer>
+            <span>수익목적이 아닌 경우 수정하거나 이용할 수 있습니다</span>
+            <span class="footer-company">김지유COMPANY제작,지원</span>
+        </footer>
+    </div>
+    <div class="admin-side-panel">
+        <h3 class="admin-panel-title">🛡️ 관리자 목록 패널</h3>
+        <ul class="admin-list">
+            <li class="admin-item super-admin"><span class="name">👑 김지유ADMIN</span><span class="role-tag role-super">최고관리자</span></li>
+            <li class="admin-item"><span class="name">KIMJIYOO0412</span><span class="role-tag role-sub">운영자</span></li>
+            <li class="admin-item"><span class="name">은행원(임시)</span><span class="role-tag role-temp">임시계정</span></li>
+        </ul>
+        <h3 class="admin-panel-title" style="color: #059669; border-color: rgba(52, 211, 153, 0.3);">🏦 은행원 명단</h3>
+        <ul class="admin-list">
+            <li class="admin-item"><span class="name">전시은</span><span class="role-tag role-banker">은행원</span></li>
+            <li class="admin-item"><span class="name" id="nasiTrigger" onclick="triggerNasiEasterEgg()" style="cursor: pointer;" title="3번 클릭해보세요!">나혜지(나시)</span><span class="role-tag role-banker">은행원</span></li>
+        </ul>
+        <h3 class="admin-panel-title" style="margin-top: 15px; color: #d97706; border-color: rgba(245, 158, 11, 0.3);">♻️ 기록 복구 관리</h3>
+        <button class="restore-panel-btn" onclick="openRestoreModal()">🗑️ 삭제된 기록 복구창 열기</button>
+        <div class="timetable-box" id="timetableBox">
+            <div class="timetable-title" id="timetableHeaderTitle">📅 오늘의 시간표</div>
+            <ul class="timetable-list" id="timetableList"></ul>
+        </div>
+        <h3 class="admin-panel-title" style="color: #0284c7; border-color: rgba(56, 189, 248, 0.3);">
+            <span>🌤️ 오늘의 김천 날씨</span>
+            <button class="refresh-icon-btn" onclick="fetchGimcheonWeather()" title="날씨 새로고침">🔄</button>
+        </h3>
+        <div class="side-card-box weather-card" id="weatherBox" style="margin-bottom: 20px;"><div style="font-size: 12px; color: #64748b;">날씨 정보를 불러오는 중...</div></div>
+        <h3 class="admin-panel-title" style="color: #c084fc; border-color: rgba(167, 139, 250, 0.3);"><span>🤖 4-4반 스마트 AI 도우미</span></h3>
+        <div class="ai-chat-box">
+            <div class="ai-chat-messages" id="aiChatMessages"><div class="chat-msg bot">👋 안녕! 날씨, 급식, 학생별 체크리스트, 저금 금액까지 무엇이든 물어봐!</div></div>
+            <div class="ai-input-group">
+                <input type="text" id="aiInputText" placeholder="질문을 입력하세요..." onkeyup="if(event.key==='Enter') sendAiMessage()">
+                <button class="ai-send-btn" onclick="sendAiMessage()">전송</button>
+            </div>
+        </div>
+        <h3 class="admin-panel-title" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); margin-top: 15px;">
+            <span>🍱 10월 김천부곡초 급식</span>
+            <button class="refresh-icon-btn" onclick="loadSchoolMeal()" title="급식 새로고침" style="color: #f59e0b;">🔄</button>
+        </h3>
+        <div class="side-card-box" id="mobileMealBox" style="margin-bottom: 20px; font-size: 13px; line-height: 1.5;"><div style="font-size: 12px; color: #64748b;">급식 정보를 불러오는 중...</div></div>
+        <div class="checklist-box">
+            <div class="checklist-title"><span>📋 4-4반 일일 체크리스트</span><span style="font-size: 11px; color: #64748b; font-weight: normal;">이름 클릭:+1 / 삭제:-1</span></div>
+            <div class="checklist-wrapper"><ul class="checklist-list" id="checkListContainer"></ul></div>
+        </div>
+    </div>
+</div>
+<div class="wish-toast" id="wishToast">✨ 4-4반의 소원이 이루어집니다! ✨</div>
+<div class="modal-overlay" id="passwordModal">
+    <div class="auth-modal-card">
+        <h3 class="auth-modal-title" id="authModalTitle">🔑 비밀번호 인증</h3>
+        <input type="password" id="authPasswordInput" class="auth-input" placeholder="••••••••••" maxlength="20" onkeyup="if(event.key==='Enter') submitPasswordAuth()">
+        <div class="auth-btn-group"><button class="auth-btn btn-success" onclick="submitPasswordAuth()">확인</button><button class="auth-btn btn-danger" onclick="closePasswordModal()">취소</button></div>
+    </div>
+</div>
+<div class="modal-overlay" id="updateNoticeModal">
+    <div class="update-modal-card">
+        <h2 class="update-modal-title">🎉 업데이트 안내</h2>
+        <div class="update-modal-body">
+            <ul>
+                <li><strong>🤖 AI 실시간 데이터 연동 업그레이드:</strong> 날씨, 급식, 체크리스트, 예적금 잔액 실시간 조회</li>
+                <li><strong>🔍 검색 기능 추가:</strong> 학생 이름 및 예금 종류 실시간 검색</li>
+                <li><strong>🍱 10월 식단표 반영:</strong> 날짜별 김천부곡초 급식 정보 연동</li>
+                <li><strong>📋 학생별 체크리스트 추가:</strong> 일일 체크 항목 간편 수량 관리</li>
+            </ul>
+        </div>
+        <button class="update-confirm-btn" onclick="closeUpdateNotice()">확인하였습니다</button>
+    </div>
+</div>
+<div class="modal-overlay" id="restoreModal">
+    <div class="modal-card" style="border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);">
+        <div class="modal-header"><h2 class="modal-title" style="color: #d97706;">♻ 삭제된 통장 기록 복구함</h2><button class="modal-close" onclick="closeRestoreModal()">✕</button></div>
+        <p style="font-size: 13px; margin-bottom: 15px;">삭제했던 내역들이 안전하게 저장되어 있습니다.</p>
+        <table><thead><tr><th>날짜</th><th>이름</th><th>종류</th><th>금액</th><th>복구</th></tr></thead><tbody id="deletedRecordList"></tbody></table>
+    </div>
+</div>
+<div class="modal-overlay" id="adminModal">
+    <div class="modal-card">
+        <div class="modal-header"><h2 class="modal-title">🛠️ 관리자(Admin) 제어 패널</h2><button class="modal-close" onclick="closeAdminModal()">✕</button></div>
+        <div class="admin-section">
+            <div class="admin-section-title">👤 학생별 권한 및 제한 설정 (최고관리자: 김지유ADMIN)</div>
+            <div class="form-group"><label for="adminStudentSelect">학생 선택</label><select id="adminStudentSelect" onchange="renderStudentAdminStatus()"><option value="">-- 학생 선택 --</option></select></div>
+            <div id="studentStatusInfo" style="margin-bottom: 12px; font-size: 13.5px;">학생을 선택하세요.</div>
+            <div class="admin-btn-group">
+                <button class="admin-btn btn-danger" onclick="toggleStudentSetting('blockDeposit', true)">🚫 예금 금지</button>
+                <button class="admin-btn btn-success" onclick="toggleStudentSetting('blockDeposit', false)">✅ 예금 금지 해제</button>
+                <button class="admin-btn btn-danger" onclick="toggleStudentSetting('blockSavings', true)">🚫 적금 금지</button>
+                <button class="admin-btn btn-success" onclick="toggleStudentSetting('blockSavings', false)">✅ 적금 금지 해제</button>
+                <button class="admin-btn btn-warning" onclick="toggleStudentSetting('unlimitDeposit', true)">🔓 예금한도 풀기(무제한)</button>
+                <button class="admin-btn btn-info" onclick="toggleStudentSetting('unlimitDeposit', false)">🔒 예금한도 복구(3,000원)</button>
+            </div>
+        </div>
+        <div class="admin-section">
+            <div class="admin-section-title">📊 학생 리더보드/저금액 직접 수정</div>
+            <div class="form-group"><label for="adminDate">날짜 선택</label><input type="date" id="adminDate"></div>
+            <div class="form-group"><label for="editType">수정할 예금 종류</label><select id="editType"><option value="정기예금">🪐 정기예금</option><option value="정기적금">🌟 정기적금</option></select></div>
+            <div class="form-group"><label for="editAmount">변경할 금액 (원)</label><input type="number" id="editAmount" placeholder="추가/변경할 금액 입력"></div>
+            <div class="admin-btn-group">
+                <button class="admin-btn btn-warning" onclick="modifyStudentBalance('add')">➕ 입력 금액만큼 추가기록</button>
+                <button class="admin-btn btn-danger" onclick="modifyStudentBalance('subtract')">➖ 입력 금액만큼 감액기록</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    let currentPeriod = 'today'; let isAdminLoggedIn = false; let pendingAuthCallback = null;
+    const ADMIN_PASSWORD = '4420261357'; const SUPER_ADMIN_NAME = '김지유ADMIN';
+    const studentList = ["김예은", "김윤솔", "김재은", "나혜지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
+    const todayISO = new Date().toISOString().substring(0, 10);
+    document.getElementById('date').value = todayISO; document.getElementById('adminDate').value = todayISO;
+    window.onload = function() { initTheme(); showUpdateNotice(); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications(); initAdminStudentSelect(); fetchGimcheonWeather(); renderTimetable(); renderChecklist(); loadSchoolMeal(); };
+    function filterRecords() {
+        const query = document.getElementById('recordSearchInput').value.toLowerCase().trim();
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || [];
+        const tbody = document.getElementById('recordList'); tbody.innerHTML = '';
+        const filtered = records.filter(item => item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query) || item.date.includes(query));
+        if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="color: #64748b; padding: 15px;">검색 결과가 없습니다.</td></tr>'; return; }
+        filtered.forEach((item) => {
+            const originalIndex = records.indexOf(item); const formattedAmount = Number(item.amount).toLocaleString() + '원'; const newRow = document.createElement('tr');
+            newRow.innerHTML = \`<td>\${item.date}</td><td>\${item.name}</td><td>\${item.type}</td><td><strong>\${formattedAmount}</strong></td><td><button class="delete-btn" onclick="deleteRecord(\${originalIndex})">삭제</button></td>\`;
+            tbody.appendChild(newRow);
+        });
+    }
+    function sendAiMessage() {
+        const inputEl = document.getElementById('aiInputText'); const text = inputEl.value.trim(); if (!text) return;
+        const messagesBox = document.getElementById('aiChatMessages');
+        const userMsg = document.createElement('div'); userMsg.className = 'chat-msg user'; userMsg.textContent = text; messagesBox.appendChild(userMsg);
+        inputEl.value = ''; messagesBox.scrollTop = messagesBox.scrollHeight;
+        setTimeout(() => { const botMsg = document.createElement('div'); botMsg.className = 'chat-msg bot'; botMsg.textContent = getSmartAiResponse(text); messagesBox.appendChild(botMsg); messagesBox.scrollTop = messagesBox.scrollHeight; }, 300);
+    }
+    function getSmartAiResponse(input) {
+        const q = input.toLowerCase();
+        if (q.includes("날씨") || q.includes("기온") || q.includes("비 오냐") || q.includes("비와") || q.includes("눈와")) {
+            const weatherBox = document.getElementById('weatherBox'); const weatherText = weatherBox ? weatherBox.innerText.replace(/\\n/g, ' ') : '';
+            if (weatherText && !weatherText.includes("불러오는 중")) return \`🌤️ [실시간 김천 날씨] \${weatherText}\`;
+            return "🌤️ 오늘의 김천 날씨 패널을 확인해보세요!";
+        }
+        if (q.includes("급식") || q.includes("밥") || q.includes("메뉴") || q.includes("반찬")) {
+            const mealBox = document.getElementById('mobileMealBox'); const mealText = mealBox ? mealBox.innerText.replace(/\\n/g, ' ') : '';
+            if (mealText && !mealText.includes("불러오는 중")) return \`🍱 [선택한 날짜 급식 정보] \${mealText}\`;
+            return "🍱 날짜를 선택하시면 해당 날짜 급식 메뉴를 바로 안내해 드립니다!";
+        }
+        const matchedStudent = studentList.find(s => q.includes(s.toLowerCase()));
+        if (q.includes("체크") || q.includes("체크리스트") || q.includes("횟수")) {
+            const counts = JSON.parse(localStorage.getItem('classBankChecklistCounts')) || {};
+            if (matchedStudent) { const cnt = counts[matchedStudent] || 0; return \`📋 '\${matchedStudent}' 학생의 체크리스트 누적 횟수는 총 \${cnt}회 입니다!\`; }
+            return "📋 체크리스트 패널에서 이름을 눌러 횟수를 올려보세요!";
+        }
+        if (matchedStudent || q.includes("저금") || q.includes("얼마") || q.includes("잔액")) {
+            if (matchedStudent) {
+                const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; let dep = 0, sav = 0;
+                records.forEach(r => { if (r.name === matchedStudent) { const amt = Number(r.amount) || 0; if (r.type === '정기예금') dep += amt; if (r.type === '정기적금') sav += amt; } });
+                const total = dep + sav; return \`💰 '\${matchedStudent}' 학생 저금 현황: 정기예금 \${dep.toLocaleString()}원, 정기적금 \${sav.toLocaleString()}원 (총합 \${total.toLocaleString()}원) 저금했습니다!\`;
+            }
+        }
+        if (q.includes("예금 한도")) return "🪐 정기예금은 1회 최대 1,000원, 총 합계 3,000원까지 가능합니다!";
+        if (q.includes("적금")) return "🌟 정기적금은 주 1회 최대 200원! 3번 연속 저금 시 800원으로 돌려받습니다!";
+        return "💡 궁금한 내용을 물어보세요! 예: '김천 날씨', '오늘 급식', '김예은 체크 몇번?' 등";
+    }
+    function loadSchoolMeal() {
+        const mealBox = document.getElementById('mobileMealBox'); const selectedDateStr = document.getElementById('date').value;
+        if (!selectedDateStr) { mealBox.innerHTML = '<div style="font-size: 12px; color: #64748b;">날짜를 선택해 주세요.</div>'; return; }
+        const dateObj = new Date(selectedDateStr); const year = dateObj.getFullYear(); const month = dateObj.getMonth() + 1; const day = dateObj.getDate(); const dayIndex = dateObj.getDay();
+        const days = ['일', '월', '화', '수', '목', '금', '토']; const dateDisplayStr = \`\${month}월 \${day}일 (\${days[dayIndex]})\`;
+        if (year !== 2026 || month !== 10) { mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div><div style="color: #64748b; font-size: 12px;">선택하신 날짜는 10월 식단표 범위가 아닙니다.</div>\`; return; }
+        if (dayIndex === 0 || dayIndex === 6) { mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div><div style="color: var(--td-color);">주말은 급식이 없습니다! 🎉</div>\`; return; }
+        const octoberMeals = { 1: "찹쌀밥(자유)<br>쇠고기들깨미역국<br>고구마치즈돈가스", 2: "잔치국수<br>쇠고기육전<br>바나나", 5: "대체공휴일", 6: "한반갈비탕<br>굴림만두조림", 7: "쇠고기콩나물밥<br>허니바베큐치킨", 8: "스파게티<br>닭꼬치", 9: "한글날", 12: "마라탕<br>전복죽", 13: "한우갈비찜", 14: "치킨마요덮밥", 15: "떡볶이/김말이", 16: "치킨샐러드", 19: "부대찌개", 20: "순두부찌개", 21: "비빔밥<br>연어스테이크", 22: "영양잡곡국밥", 23: "고르곤졸라피자<br>쭈꾸미볶음", 26: "매콤닭갈비찜", 27: "등심돈가스", 28: "탕수육", 29: "한우불고기", 30: "오리훈제" };
+        const meal = octoberMeals[day]; let menuText = meal ? meal : "식단 정보가 없습니다.";
+        mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr} 중식</div><div style="color: var(--td-color);">\${menuText}</div>\`;
+    }
+    function getChecklistData() { return JSON.parse(localStorage.getItem('classBankChecklistCounts')) || {}; }
+    function saveChecklistData(data) { localStorage.setItem('classBankChecklistCounts', JSON.stringify(data)); }
+    function renderChecklist() {
+        const container = document.getElementById('checkListContainer'); container.innerHTML = ''; const counts = getChecklistData();
+        studentList.forEach(name => {
+            const count = counts[name] || 0; const displayName = (name === SUPER_ADMIN_NAME) ? \`👑 \${name}\` : name;
+            const li = document.createElement('li'); li.className = 'checklist-item';
+            li.onclick = (e) => { if (!e.target.classList.contains('checklist-del-btn')) incrementChecklist(name); };
+            li.innerHTML = \`<span class="student-name">\${displayName}</span><div class="checklist-right"><span class="checklist-count">\${count}회</span><button class="checklist-del-btn" onclick="decrementChecklist(event, '\${name}')">-1</button></div>\`;
+            container.appendChild(li);
+        });
+    }
+    function incrementChecklist(name) { const counts = getChecklistData(); counts[name] = (counts[name] || 0) + 1; saveChecklistData(counts); renderChecklist(); }
+    function decrementChecklist(event, name) { event.stopPropagation(); const counts = getChecklistData(); if ((counts[name] || 0) > 0) { counts[name] -= 1; saveChecklistData(counts); renderChecklist(); } }
+    function renderTimetable() {
+        const timetableData = { 1: ["1교시: 수학", "2교시: 영어", "3교시: 국어", "4교시: 국어", "5교시: 도덕"], 2: ["1교시: 수학", "2교시: 국어", "3교시: 창체", "4교시: 사회", "5교시: 미술"], 3: ["1교시: 수학", "2교시: 과학", "3교시: 체육", "4교시: 사회", "5교시: 음악"], 4: ["1교시: 과학", "2교시: 수학", "3교시: 영어", "4교시: 사회", "5교시: 창체"], 5: ["1교시: 국어", "2교시: 국어", "3교시: 체육", "4교시: 과학", "5교시: 음악"] };
+        const dayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]; const now = new Date(); const dayIndex = now.getDay();
+        const titleEl = document.getElementById('timetableHeaderTitle'); const listEl = document.getElementById('timetableList'); listEl.innerHTML = '';
+        titleEl.textContent = \`📅 오늘의 시간표 (\${dayNames[dayIndex]})\`;
+        const currentClasses = timetableData[dayIndex];
+        if (!currentClasses) { let li = document.createElement('li'); li.className = 'timetable-item'; li.style.justifyContent = 'center'; li.textContent = '오늘은 주말이라 수업이 없습니다! 🎉'; listEl.appendChild(li); return; }
+        currentClasses.forEach((cls) => { let li = document.createElement('li'); li.className = 'timetable-item today-class'; li.innerHTML = \`<span>\${cls}</span>\`; listEl.appendChild(li); });
+    }
+    let nasiClickCount = 0; let nasiClickTimer = null;
+    function triggerNasiEasterEgg() {
+        nasiClickCount++; clearTimeout(nasiClickTimer); nasiClickTimer = setTimeout(() => { nasiClickCount = 0; }, 3000);
+        if (nasiClickCount >= 3) { nasiClickCount = 0; showToast('😂 나시 얼굴 비바람이 내립니다! 🤪'); const nasiFaces = ['😜', '🤪', '🥸', '😎', '😆']; for (let i = 0; i < 25; i++) { setTimeout(() => { const nasi = document.createElement('div'); nasi.className = 'nasi-rain'; nasi.innerHTML = nasiFaces[Math.floor(Math.random() * nasiFaces.length)]; nasi.style.left = (Math.random() * (window.innerWidth - 40)) + 'px'; document.body.appendChild(nasi); setTimeout(() => nasi.remove(), 2000); }, i * 100); } }
+    }
+    function initTheme() { const savedTheme = localStorage.getItem('classBankTheme') || 'dark'; if (savedTheme === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; } else { document.body.classList.remove('light-mode'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; } }
+    function toggleTheme() { const isLight = document.body.classList.toggle('light-mode'); if (isLight) { localStorage.setItem('classBankTheme', 'light'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; showToast('☀️ 라이트 모드로 전환되었습니다!'); } else { localStorage.setItem('classBankTheme', 'dark'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; showToast('🌙 다크 모드로 전환되었습니다!'); } }
+    function downloadBankImage() {
+        const targetElement = document.getElementById('printableRecordSection');
+        const deleteHeaders = targetElement.querySelectorAll('th:nth-child(5), td:nth-child(5)'); deleteHeaders.forEach(el => el.style.display = 'none');
+        showToast('📸 통장 기록 이미지를 생성하는 중입니다...'); const isLight = document.body.classList.contains('light-mode');
+        html2canvas(targetElement, { backgroundColor: isLight ? '#f8fafc' : '#0f172a', scale: 2, useCORS: true }).then(canvas => { deleteHeaders.forEach(el => el.style.display = ''); const link = document.createElement('a'); link.download = \`4-4반_통장기록_\${new Date().toISOString().substring(0, 10)}.png\`; link.href = canvas.toDataURL('image/png'); link.click(); showToast('✨ 통장 기록 이미지 저장이 완료되었습니다!'); }).catch(err => { deleteHeaders.forEach(el => el.style.display = ''); alert('이미지 생성 중 오류가 발생했습니다.'); console.error(err); });
+    }
+    function fetchGimcheonWeather() {
+        const weatherBox = document.getElementById('weatherBox'); weatherBox.innerHTML = '<div style="font-size: 12px; color: #64748b;">김천 날씨 정보 확인 중...</div>';
+        fetch('https://api.open-meteo.com/v1/forecast?latitude=36.12&longitude=128.11&current_weather=true').then(res => res.json()).then(data => {
+            if (data && data.current_weather) { const temp = Math.round(data.current_weather.temperature); const code = data.current_weather.weathercode; const weatherInfo = getWeatherDescription(code); weatherBox.innerHTML = \`<div class="weather-main-info"><span class="weather-icon">\${weatherInfo.icon}</span><span class="weather-temp">\${temp}°C</span></div><div class="weather-desc">경상북도 김천시 (\${weatherInfo.text})</div>\`; } else { weatherBox.innerHTML = '<div style="font-size: 12px; color: #ef4444;">날씨 불러오기 실패</div>'; }
+        }).catch(() => { weatherBox.innerHTML = '<div style="font-size: 12px; color: #ef4444;">네트워크 연결을 확인하세요</div>'; });
+    }
+    function getWeatherDescription(code) { if (code === 0) return { icon: '☀️', text: '맑음' }; if (code >= 1 && code <= 3) return { icon: '⛅', text: '구름 조금' }; if (code >= 51) return { icon: '🌧️', text: '비' }; return { icon: '🌡️', text: '기온 정보' }; }
+    function promptPasswordAuth(titleText, callback) { document.getElementById('authModalTitle').textContent = titleText; document.getElementById('authPasswordInput').value = ''; document.getElementById('passwordModal').style.display = 'flex'; document.getElementById('authPasswordInput').focus(); pendingAuthCallback = callback; }
+    function closePasswordModal() { document.getElementById('passwordModal').style.display = 'none'; pendingAuthCallback = null; }
+    function submitPasswordAuth() { if (document.getElementById('authPasswordInput').value === ADMIN_PASSWORD) { const cb = pendingAuthCallback; closePasswordModal(); if (cb) cb(); } else { alert('❌ 비밀번호가 올바르지 않습니다!'); } }
+    function showUpdateNotice() { const modal = document.getElementById('updateNoticeModal'); if (modal) modal.style.display = 'flex'; }
+    function closeUpdateNotice() { const modal = document.getElementById('updateNoticeModal'); if (modal) modal.style.display = 'none'; }
+    function saveRecords(records) { localStorage.setItem('classBankRecords', JSON.stringify(records)); }
+    function getDeletedRecords() { return JSON.parse(localStorage.getItem('classBankDeletedRecords')) || []; }
+    function saveDeletedRecords(deletedRecords) { localStorage.setItem('classBankDeletedRecords', JSON.stringify(deletedRecords)); }
+    function getAdminSettings() { return JSON.parse(localStorage.getItem('classBankAdminSettings')) || {}; }
+    function saveAdminSettings(settings) { localStorage.setItem('classBankAdminSettings', JSON.stringify(settings)); }
+    function getDismissedNotifications() { return JSON.parse(localStorage.getItem('dismissedNotifications')) || []; }
+    function dismissNotification(name) { const dismissed = getDismissedNotifications(); if (!dismissed.includes(name)) { dismissed.push(name); localStorage.setItem('dismissedNotifications', JSON.stringify(dismissed)); } updateNotifications(); }
+    function getWeekKey(dateObj) { const d = new Date(dateObj); d.setHours(0, 0, 0, 0); const day = d.getDay(); const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1); const monday = new Date(d.setDate(diffToMon)); return monday.toISOString().substring(0, 10); }
+    function loadRecords() {
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const tbody = document.getElementById('recordList'); tbody.innerHTML = '';
+        records.forEach((item, index) => { const formattedAmount = Number(item.amount).toLocaleString() + '원'; const newRow = document.createElement('tr'); newRow.innerHTML = \`<td>\${item.date}</td><td>\${item.name}</td><td>\${item.type}</td><td><strong>\${formattedAmount}</strong></td><td><button class="delete-btn" onclick="deleteRecord(\${index})">삭제</button></td>\`; tbody.appendChild(newRow); });
+    }
+    function updateStudentStatusTable() {
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const tbody = document.getElementById('studentStatusList'); tbody.innerHTML = '';
+        studentList.forEach(name => {
+            let depositTotal = 0, savingsTotal = 0;
+            records.forEach(item => { if (item.name === name) { const amt = Number(item.amount) || 0; if (item.type === '정기예금') depositTotal += amt; if (item.type === '정기적금') savingsTotal += amt; } });
+            const totalAmount = depositTotal + savingsTotal;
+            const depositBadge = depositTotal > 0 ? \`<span class="badge-status badge-done">완료 (\${depositTotal.toLocaleString()}원)</span>\` : \`<span class="badge-status badge-none">미완료</span>\`;
+            const savingsBadge = savingsTotal > 0 ? \`<span class="badge-status badge-done">완료 (\${savingsTotal.toLocaleString()}원)</span>\` : \`<span class="badge-status badge-none">미완료</span>\`;
+            const displayName = (name === SUPER_ADMIN_NAME) ? \`👑 \${name}\` : name;
+            const row = document.createElement('tr'); row.innerHTML = \`<td><strong>\${displayName}</strong></td><td>\${depositBadge}</td><td>\${savingsBadge}</td><td><strong style="color: #d97706;">\${totalAmount.toLocaleString()}원</strong></td>\`; tbody.appendChild(row);
+        });
+    }
+    function updateNotifications() {
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const notificationList = document.getElementById('notificationList'); notificationList.innerHTML = ''; const dismissed = getDismissedNotifications(); const savingsDataMap = {};
+        records.forEach(item => { if (item.type === '정기적금' && Number(item.amount) === 200) { if (!savingsDataMap[item.name]) savingsDataMap[item.name] = { count: 0, lastDate: item.date }; savingsDataMap[item.name].count += 1; if (item.date > savingsDataMap[item.name].lastDate) savingsDataMap[item.name].lastDate = item.date; } });
+        let hasTarget = false;
+        Object.keys(savingsDataMap).forEach(name => {
+            if (savingsDataMap[name].count >= 3 && !dismissed.includes(name)) {
+                hasTarget = true; const lastDateObj = new Date(savingsDataMap[name].lastDate); const returnDateObj = new Date(lastDateObj); returnDateObj.setDate(lastDateObj.getDate() + 7);
+                const weekNames = ['일', '월', '화', '수', '목', '금', '토']; const returnDateStr = \`\${returnDateObj.getMonth() + 1}월 \${returnDateObj.getDate()}일(\${weekNames[returnDateObj.getDay()]})\`;
+                const li = document.createElement('li'); li.className = 'notification-item'; li.innerHTML = \`<span>🎉 <strong>\${name}</strong> 학생 적금 만기! 다음 주 <strong>\${returnDateStr}</strong>에 <strong>800원</strong>으로 돌려받게 됩니다.</span><button class="notification-del-btn" onclick="dismissNotification('\${name}')">✕ 닫기</button>\`; notificationList.appendChild(li);
+            }
+        });
+        if (!hasTarget) notificationList.innerHTML = '<li class="empty-notification">현재 표시할 적금 반환 알림이 없습니다.</li>';
+    }
+    function switchPeriod(period, btnElement) { currentPeriod = period; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); btnElement.classList.add('active'); updateLeaderboards(); }
+    function filterRecordsByPeriod(records, period) {
+        const today = new Date(); const todayStr = today.toISOString().substring(0, 10);
+        return records.filter(item => { if (!item.date) return false; const itemDate = new Date(item.date); if (period === 'today') return item.date === todayStr; if (period === 'week') return getWeekKey(itemDate) === getWeekKey(today); if (period === 'month') return itemDate.getFullYear() === today.getFullYear() && itemDate.getMonth() === today.getMonth(); return true; });
+    }
+    function updateLeaderboards() {
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const filtered = filterRecordsByPeriod(records, currentPeriod);
+        const depositMap = {}, savingsMap = {}, totalMap = {};
+        filtered.forEach(item => { const amt = Number(item.amount) || 0; totalMap[item.name] = (totalMap[item.name] || 0) + amt; if (item.type === '정기예금') depositMap[item.name] = (depositMap[item.name] || 0) + amt; else if (item.type === '정기적금') savingsMap[item.name] = (savingsMap[item.name] || 0) + amt; });
+        renderRankList('depositRankList', depositMap); renderRankList('savingsRankList', savingsMap); renderRankList('totalRankList', totalMap);
+    }
+    function renderRankList(elementId, dataMap) {
+        const listEl = document.getElementById(elementId); listEl.innerHTML = '';
+        const sorted = Object.keys(dataMap).map(name => ({ name, amount: dataMap[name] })).sort((a, b) => b.amount - a.amount).slice(0, 10);
+        if (sorted.length === 0) { listEl.innerHTML = '<li class="empty-rank">기록이 없습니다.</li>'; return; }
+        sorted.forEach((item, index) => {
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+            const li = document.createElement('li'); li.className = 'rank-item'; li.innerHTML = \`<span><span class="rank-number \${rankClass}">\${index + 1}.</span> <span class="\${rankClass}">\${item.name}</span></span><strong>\${item.amount.toLocaleString()}원</strong>\`; listEl.appendChild(li);
+        });
+    }
+    function addRecord() {
+        const dateInput = document.getElementById('date').value; const name = document.getElementById('name').value; const amount = Number(document.getElementById('amount').value); const type = document.getElementById('type').value;
+        if (!dateInput || !name || !amount || amount <= 0) { alert('날짜, 이름, 올바른 금액을 선택/입력해 주세요!'); return; }
+        const isSuperAdmin = (name === SUPER_ADMIN_NAME); const adminSettings = getAdminSettings(); const userSetting = adminSettings[name] || {};
+        if (!isSuperAdmin) { if (type === '정기예금' && userSetting.blockDeposit) { alert(\`[접근 제한] '\${name}' 대원은 '정기예금'이 금지되어 있습니다.\`); return; } if (type === '정기적금' && userSetting.blockSavings) { alert(\`[접근 제한] '\${name}' 대원은 '정기적금'이 금지되어 있습니다.\`); return; } }
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || [];
+        if (type === '정기예금' && !isSuperAdmin) {
+            if (amount > 1000) { alert('[경고] 정기예금은 1회에 최대 1,000원까지만 가능합니다!'); return; }
+            const currentDepositTotal = records.filter(item => item.name === name && item.type === '정기예금').reduce((sum, item) => sum + Number(item.amount), 0);
+            if (!userSetting.unlimitDeposit && (currentDepositTotal + amount > 3000)) { alert(\`[경고] 정기예금 총 한도는 3,000원입니다.\`); return; }
+        }
+        if (type === '정기적금' && !isSuperAdmin) {
+            if (amount > 200) { alert('[경고] 정기적금은 1회에 최대 200원까지만 가능합니다!'); return; }
+            const inputWeekKey = getWeekKey(new Date(dateInput));
+            if (records.some(item => item.name === name && item.type === '정기적금' && getWeekKey(new Date(item.date)) === inputWeekKey)) { alert(\`[경고] 이번 주에 이미 정기적금을 넣었습니다!\`); return; }
+        }
+        records.unshift({ date: dateInput, name: name, amount: amount, type: type }); saveRecords(records); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications();
+        document.getElementById('amount').value = ''; document.getElementById('name').value = '';
+    }
+    function deleteRecord(index) {
+        if (confirm('이 기록을 삭제하시겠습니까?')) {
+            const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const deleted = records.splice(index, 1)[0];
+            const deletedRecords = getDeletedRecords(); deletedRecords.unshift(deleted); saveDeletedRecords(deletedRecords);
+            saveRecords(records); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications();
+        }
+    }
+    function clearAllRecords() {
+        promptPasswordAuth('🔑 전체 삭제 비밀번호 입력', function() {
+            if (confirm('모든 통장 기록을 지우시겠습니까?')) {
+                const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const deletedRecords = getDeletedRecords();
+                records.forEach(item => deletedRecords.unshift(item)); saveDeletedRecords(deletedRecords);
+                localStorage.removeItem('classBankRecords'); localStorage.removeItem('dismissedNotifications');
+                loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications(); alert('모든 기록이 삭제되었습니다.');
+            }
+        });
+    }
+    function openRestoreModal() { renderDeletedRecords(); document.getElementById('restoreModal').style.display = 'flex'; }
+    function closeRestoreModal() { document.getElementById('restoreModal').style.display = 'none'; }
+    function renderDeletedRecords() {
+        const deletedRecords = getDeletedRecords(); const tbody = document.getElementById('deletedRecordList'); tbody.innerHTML = '';
+        if (deletedRecords.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="color: #64748b; padding: 20px;">삭제된 기록이 없습니다.</td></tr>'; return; }
+        deletedRecords.forEach((item, index) => {
+            const row = document.createElement('tr'); row.innerHTML = \`<td>\${item.date}</td><td><strong>\${item.name}</strong></td><td>\${item.type}</td><td>\${Number(item.amount).toLocaleString()}원</td><td><button class="restore-btn" onclick="restoreRecord(\${index})">복구</button></td>\`; tbody.appendChild(row);
+        });
+    }
+    function restoreRecord(index) {
+        const deletedRecords = getDeletedRecords(); const restoredItem = deletedRecords.splice(index, 1)[0]; saveDeletedRecords(deletedRecords);
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; records.unshift(restoredItem); saveRecords(records);
+        renderDeletedRecords(); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications();
+        alert(\`'\${restoredItem.name}' 학생 기록이 복구되었습니다!\`);
+    }
+    function showToast(text, duration = 3000) { const toast = document.getElementById('wishToast'); toast.innerHTML = text; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), duration); }
+    let titleClickCount = 0, titleClickTimer = null;
+    function triggerShootingStars() {
+        titleClickCount++; clearTimeout(titleClickTimer); titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 3000);
+        if (titleClickCount >= 3) { titleClickCount = 0; showToast('✨ 4-4반의 소원이 이루어집니다! ✨'); for (let i = 0; i < 15; i++) { setTimeout(() => { const star = document.createElement('div'); star.className = 'shooting-star'; star.style.top = (Math.random() * (window.innerHeight * 0.6)) + 'px'; star.style.left = (window.innerWidth * 0.4 + Math.random() * (window.innerWidth * 0.6)) + 'px'; document.body.appendChild(star); setTimeout(() => star.remove(), 1200); }, i * 150); } }
+    }
+    let rocketClickCount = 0, rocketClickTimer = null;
+    function triggerRocketLaunch() {
+        rocketClickCount++; clearTimeout(rocketClickTimer); rocketClickTimer = setTimeout(() => { rocketClickCount = 0; }, 3000);
+        if (rocketClickCount >= 3) { rocketClickCount = 0; showToast('🚀 4-4반 우주선 발사!'); document.body.classList.add('aurora-mode'); setTimeout(() => document.body.classList.remove('aurora-mode'), 6000); const rocket = document.createElement('div'); rocket.className = 'rocket-ship'; rocket.innerHTML = '🚀'; rocket.style.left = (window.innerWidth * 0.5 - 30) + 'px'; document.body.appendChild(rocket); setTimeout(() => rocket.remove(), 2300); }
+    }
+    let isCoinRaining = false;
+    function checkLuckySeven(inputEl) {
+        if (inputEl.value === '777' && !isCoinRaining) { isCoinRaining = true; showToast('🎰 잭팟! 🪙'); const coins = ['🪙', '💰', '✨', '💎', '🌟']; for (let i = 0; i < 25; i++) { setTimeout(() => { const coin = document.createElement('div'); coin.className = 'coin-rain'; coin.innerHTML = coins[Math.floor(Math.random() * coins.length)]; coin.style.left = (Math.random() * (window.innerWidth - 40)) + 'px'; document.body.appendChild(coin); setTimeout(() => coin.remove(), 2000); }, i * 100); } setTimeout(() => { isCoinRaining = false; }, 3500); }
+    }
+    function openAdminModal() { if (!isAdminLoggedIn) { promptPasswordAuth('🔑 Admin로그인 비밀번호 입력', function() { isAdminLoggedIn = true; document.getElementById('adminModal').style.display = 'flex'; renderStudentAdminStatus(); }); } else { document.getElementById('adminModal').style.display = 'flex'; renderStudentAdminStatus(); } }
+    function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+    function initAdminStudentSelect() { const select = document.getElementById('adminStudentSelect'); select.innerHTML = '<option value="">-- 학생 선택 --</option>'; studentList.forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.textContent = (name === SUPER_ADMIN_NAME) ? \`👑 \${name} (최고관리자)\` : name; select.appendChild(opt); }); }
+    function renderStudentAdminStatus() {
+        const name = document.getElementById('adminStudentSelect').value; const infoDiv = document.getElementById('studentStatusInfo'); if (!name) { infoDiv.innerHTML = '학생을 선택하세요.'; return; }
+        if (name === SUPER_ADMIN_NAME) { infoDiv.innerHTML = \`<strong>👑 \${name}</strong> 대원은 <u>최고관리자</u>로서 기본 무제한 한도가 부여되어 있습니다.\`; return; }
+        const adminSettings = getAdminSettings(); const userSetting = adminSettings[name] || {};
+        const depStatus = userSetting.blockDeposit ? '<span class="badge badge-red">예금 금지중</span>' : '<span class="badge badge-green">예금 가능</span>';
+        const savStatus = userSetting.blockSavings ? '<span class="badge badge-red">적금 금지중</span>' : '<span class="badge badge-green">적금 가능</span>';
+        const limitStatus = userSetting.unlimitDeposit ? '<span class="badge badge-green">한도 해제됨 (무제한)</span>' : '<span class="badge badge-red">한도 제한중 (3,000원)</span>';
+        infoDiv.innerHTML = \`<strong>\${name}</strong> 학생 상태: \${depStatus} \${savStatus} \${limitStatus}\`;
+    }
+    function toggleStudentSetting(key, status) {
+        const name = document.getElementById('adminStudentSelect').value; if (!name) { alert('학생을 먼저 선택해 주세요!'); return; }
+        if (name === SUPER_ADMIN_NAME) { alert('👑 최고관리자는 제한을 설정할 수 없습니다.'); return; }
+        const adminSettings = getAdminSettings(); if (!adminSettings[name]) adminSettings[name] = {}; adminSettings[name][key] = status; saveAdminSettings(adminSettings); renderStudentAdminStatus(); alert(\`'\${name}' 학생 설정 업데이트 완료.\`);
+    }
+    function modifyStudentBalance(action) {
+        const name = document.getElementById('adminStudentSelect').value; const adminDate = document.getElementById('adminDate').value; const type = document.getElementById('editType').value; const amount = Number(document.getElementById('editAmount').value);
+        if (!name || !adminDate || !amount || amount <= 0) { alert('학생, 날짜, 올바른 금액을 입력해 주세요!'); return; }
+        const records = JSON.parse(localStorage.getItem('classBankRecords')) || [];
+        if (action === 'add') { records.unshift({ date: adminDate, name: name, amount: amount, type: type }); alert(\`[관리자] '\${name}' 학생에게 \${type} \${amount.toLocaleString()}원이 추가되었습니다.\`); }
+        else if (action === 'subtract') { records.unshift({ date: adminDate, name: name, amount: -amount, type: type }); alert(\`[관리자] '\${name}' 학생 \${type}에서 \${amount.toLocaleString()}원이 차감되었습니다.\`); }
+        saveRecords(records); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications(); document.getElementById('editAmount').value = '';
+    }
+<\/script>
+</body>
+</html>`;
+
+    // 프로그램 전환 및 홈 표시 함수
+    function showHome() {
+      document.getElementById('portalHome').style.display = 'flex';
+      const frame = document.getElementById('appFrame');
+      frame.style.display = 'none';
+      frame.srcdoc = '';
+
+      updateNavButtons('home');
+    }
+
+    function loadProgram(type) {
+      document.getElementById('portalHome').style.display = 'none';
+      const frame = document.getElementById('appFrame');
+      frame.style.display = 'block';
+
+      if (type === 'asset') {
+        frame.srcdoc = assetHtmlSrc;
+        updateNavButtons('asset');
+      } else if (type === 'bank') {
+        frame.srcdoc = bankHtmlSrc;
+        updateNavButtons('bank');
+      }
+    }
+
+    function updateNavButtons(activeType) {
+      document.getElementById('btnHome').classList.remove('active');
+      document.getElementById('btnAsset').classList.remove('active');
+      document.getElementById('btnBank').classList.remove('active');
+
+      if (activeType === 'home') document.getElementById('btnHome').classList.add('active');
+      if (activeType === 'asset') document.getElementById('btnAsset').classList.add('active');
+      if (activeType === 'bank') document.getElementById('btnBank').classList.add('active');
+    }
+  </script>
+</body>
+</html>
