@@ -246,7 +246,7 @@
   <iframe id="appFrame" class="app-viewport"></iframe>
 
   <script>
-    // 입력해주신 자산관리.html 코드 내장
+    // 1. 자산관리 프로그램 (기존 기능 100% 보존)
     const assetHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -389,13 +389,14 @@
 </body>
 </html>`;
 
-    // 입력해주신 은행관리.html 코드 내장
+    // 2. 은행관리 프로그램 (급식 데이터 이미지 정밀 매핑 및 통장 다운로드 수정)
     const bankHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>4-4반 은행 관리 프로그램</title>
+    <!-- html2canvas 라이브러리 추가 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
     <style>
         html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
@@ -767,8 +768,8 @@
             <ul>
                 <li><strong>🤖 AI 실시간 데이터 연동 업그레이드:</strong> 날씨, 급식, 체크리스트, 예적금 잔액 실시간 조회</li>
                 <li><strong>🔍 검색 기능 추가:</strong> 학생 이름 및 예금 종류 실시간 검색</li>
-                <li><strong>🍱 10월 식단표 반영:</strong> 날짜별 김천부곡초 급식 정보 연동</li>
-                <li><strong>📋 학생별 체크리스트 추가:</strong> 일일 체크 항목 간편 수량 관리</li>
+                <li><strong>🍱 10월 식단표 반영:</strong> 제공해주신 식단표 완벽 수용</li>
+                <li><strong>📋 학생별 체크리스트 추가:</strong> 일일 체크 항목 간편 관리</li>
             </ul>
         </div>
         <button class="update-confirm-btn" onclick="closeUpdateNotice()">확인하였습니다</button>
@@ -816,6 +817,7 @@
     const todayISO = new Date().toISOString().substring(0, 10);
     document.getElementById('date').value = todayISO; document.getElementById('adminDate').value = todayISO;
     window.onload = function() { initTheme(); showUpdateNotice(); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications(); initAdminStudentSelect(); fetchGimcheonWeather(); renderTimetable(); renderChecklist(); loadSchoolMeal(); };
+
     function filterRecords() {
         const query = document.getElementById('recordSearchInput').value.toLowerCase().trim();
         const records = JSON.parse(localStorage.getItem('classBankRecords')) || [];
@@ -828,6 +830,7 @@
             tbody.appendChild(newRow);
         });
     }
+
     function sendAiMessage() {
         const inputEl = document.getElementById('aiInputText'); const text = inputEl.value.trim(); if (!text) return;
         const messagesBox = document.getElementById('aiChatMessages');
@@ -835,6 +838,7 @@
         inputEl.value = ''; messagesBox.scrollTop = messagesBox.scrollHeight;
         setTimeout(() => { const botMsg = document.createElement('div'); botMsg.className = 'chat-msg bot'; botMsg.textContent = getSmartAiResponse(text); messagesBox.appendChild(botMsg); messagesBox.scrollTop = messagesBox.scrollHeight; }, 300);
     }
+
     function getSmartAiResponse(input) {
         const q = input.toLowerCase();
         if (q.includes("날씨") || q.includes("기온") || q.includes("비 오냐") || q.includes("비와") || q.includes("눈와")) {
@@ -864,17 +868,76 @@
         if (q.includes("적금")) return "🌟 정기적금은 주 1회 최대 200원! 3번 연속 저금 시 800원으로 돌려받습니다!";
         return "💡 궁금한 내용을 물어보세요! 예: '김천 날씨', '오늘 급식', '김예은 체크 몇번?' 등";
     }
+
+    /* 🍱 이미지 식단표 기준 날짜별 급식 매핑 수정 */
     function loadSchoolMeal() {
-        const mealBox = document.getElementById('mobileMealBox'); const selectedDateStr = document.getElementById('date').value;
-        if (!selectedDateStr) { mealBox.innerHTML = '<div style="font-size: 12px; color: #64748b;">날짜를 선택해 주세요.</div>'; return; }
-        const dateObj = new Date(selectedDateStr); const year = dateObj.getFullYear(); const month = dateObj.getMonth() + 1; const day = dateObj.getDate(); const dayIndex = dateObj.getDay();
-        const days = ['일', '월', '화', '수', '목', '금', '토']; const dateDisplayStr = \`\${month}월 \${day}일 (\${days[dayIndex]})\`;
-        if (year !== 2026 || month !== 10) { mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div><div style="color: #64748b; font-size: 12px;">선택하신 날짜는 10월 식단표 범위가 아닙니다.</div>\`; return; }
-        if (dayIndex === 0 || dayIndex === 6) { mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div><div style="color: var(--td-color);">주말은 급식이 없습니다! 🎉</div>\`; return; }
-        const octoberMeals = { 1: "찹쌀밥(자유)<br>쇠고기들깨미역국<br>고구마치즈돈가스", 2: "잔치국수<br>쇠고기육전<br>바나나", 5: "대체공휴일", 6: "한반갈비탕<br>굴림만두조림", 7: "쇠고기콩나물밥<br>허니바베큐치킨", 8: "스파게티<br>닭꼬치", 9: "한글날", 12: "마라탕<br>전복죽", 13: "한우갈비찜", 14: "치킨마요덮밥", 15: "떡볶이/김말이", 16: "치킨샐러드", 19: "부대찌개", 20: "순두부찌개", 21: "비빔밥<br>연어스테이크", 22: "영양잡곡국밥", 23: "고르곤졸라피자<br>쭈꾸미볶음", 26: "매콤닭갈비찜", 27: "등심돈가스", 28: "탕수육", 29: "한우불고기", 30: "오리훈제" };
-        const meal = octoberMeals[day]; let menuText = meal ? meal : "식단 정보가 없습니다.";
-        mealBox.innerHTML = \`<div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr} 중식</div><div style="color: var(--td-color);">\${menuText}</div>\`;
+        const mealBox = document.getElementById('mobileMealBox');
+        const selectedDateStr = document.getElementById('date').value;
+
+        if (!selectedDateStr) {
+            mealBox.innerHTML = '<div style="font-size: 12px; color: #64748b;">날짜를 선택해 주세요.</div>';
+            return;
+        }
+
+        const dateObj = new Date(selectedDateStr);
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth() + 1;
+        const day = dateObj.getDate();
+        const dayIndex = dateObj.getDay();
+
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const dateDisplayStr = \`\${month}월 \${day}일 (\${days[dayIndex]})\`;
+
+        if (month !== 10) {
+            mealBox.innerHTML = \`
+                <div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div>
+                <div style="color: #64748b; font-size: 12px;">선택하신 날짜는 10월 식단표 범위가 아닙니다.</div>
+            \`;
+            return;
+        }
+
+        if (dayIndex === 0 || dayIndex === 6) {
+            mealBox.innerHTML = \`
+                <div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr}</div>
+                <div style="color: var(--td-color);">주말은 급식이 없습니다! 🎉</div>
+            \`;
+            return;
+        }
+
+        const octoberMeals = {
+            1: "찰기장밥<br>쇠고기들깨미역국<br>효두단호박조림<br>고구마치즈돈가스/소스<br>깍두기담김<br>배추김치(자율)<br>오이/고추/쌈장(자율)<br>우리밀초코파이<br>카프레제샐러드",
+            2: "쌀밥(자율)<br>잔치국수/양념장<br>콩나물무침(자율)<br>쇠고기육전<br>배추김치(자율)<br>초코컵쿠키<br>하루요거트(사과맛)<br>바나나",
+            5: "대체공휴일",
+            6: "영양잡곡밥<br>굴림만두소스조림<br>시래기조림(자율)<br>감자파프리카채볶음<br>배추김치70담김<br>배추김치(자율)<br>궁중가지떡<br>한반갈비탕",
+            7: "쇠고기콩나물밥/양념장<br>한글날레몬마들렌<br>근대된장국<br>치커리양배추생채(자율)<br>허니바베큐치킨<br>배추김치(자율)<br>친환경사과",
+            8: "쌀밥(자율)<br>스파게티<br>들깨무국<br>닭꼬치70<br>깍두기<br>배추김치(자율)<br>오이양배추유자청샐러드(자율)<br>파인애플",
+            9: "한글날",
+            12: "찰현미밥<br>전복죽(자율)<br>미니찐빵<br>마라탕<br>삼치유자청데리야끼구이<br>찹쌀콩멸치볶음<br>부추겉절이(자율)<br>배추김치(자율)<br>친환경배",
+            13: "클로렐라쌀밥<br>한우갈비찜<br>애호박들깨볶음<br>부추장국<br>배추김치(자율)<br>친환경샤인머스켓<br>파프리카/쌈장(자율)<br>꽃게탕",
+            14: "치킨마요덮밥<br>매운콩나물국<br>우엉잡채조림<br>오이치커리무침(자율)<br>배추김치(자율)<br>초코크런치도넛아이스크림<br>바나나",
+            15: "차수수밥<br>얼큰수제비국<br>명태피조림<br>오왕장육<br>오징어/떡볶이<br>배추김치(자율)<br>모둠쌈/쌈장(자율)<br>친환경사과",
+            16: "찰보리밥<br>쇠고기토장국<br>견과류조림<br>치킨샐러드<br>더덕양념구이(자율)<br>배추김치(자율)<br>유기농그리스식요거트딸기",
+            19: "토마토펜네밥<br>매콤감자조림<br>견과류멸치볶음<br>김구이<br>배추김치(자율)<br>호떡<br>부대찌개<br>오이/고추/쌈장(자율)",
+            20: "찰현미밥<br>아몬드병어조림<br>콘치즈그라탕<br>배추김치70담김<br>배추김치(자율)<br>돈육살버섯구이/바비큐소스<br>순두부찌개<br>양상추/오이고추/쌈장(자율)",
+            21: "비빔밥<br>단호박죽(자율)<br>팽이버섯된장국<br>고추장볶음<br>연근조림(자율)<br>배추김치(자율)<br>심쿵사과주스<br>연어스테이크/소스",
+            22: "영양잡곡밥<br>우리밀독도케익<br>사골육개장<br>두부/김치볶음<br>계란옷입은동태전<br>배추김치(자율)<br>양배추쌈/양념장(자율)<br>친환경샤인머스켓",
+            23: "차수수밥<br>시래기조림(자율)<br>건파래볶음<br>쭈꾸미떡볶음<br>배추김치(자율)<br>고르곤졸라피자<br>설렁탕<br>친환경배",
+            26: "찰기장밥<br>조랭이떡국<br>검정콩조림<br>매콤돼지갈비찜<br>숙주나물무침<br>배추김치(자율)<br>미니십원빵(팥)<br>친환경사과",
+            27: "찰보리밥<br>수제양송이크림스프(자율)<br>돼지등뼈들깨감자탕<br>쥐포땅콩조림<br>등심돈가스/소스<br>오이깍두기<br>배추김치(자율)",
+            28: "쌀밥(자율)<br>쌀짜장면<br>단무지<br>깐쇼새우탕수/소스<br>배추김치(자율)<br>찰감자꽃만두찜<br>친환경샤인머스켓",
+            29: "강황쌀밥<br>한우불고기<br>우엉튀김조림<br>치즈가리비구이<br>배추김치(자율)<br>모둠쌈/쌈장(자율)<br>호박고추장찌개",
+            30: "영양잡곡밥<br>황태감자국<br>두부조림<br>무말랭이진미무침<br>오이고추무침(자율)<br>배추김치(자율)<br>무쌈(자율)<br>오리훈제/머스터드"
+        };
+
+        const meal = octoberMeals[day];
+        let menuText = meal ? meal : "식단 정보가 없습니다.";
+
+        mealBox.innerHTML = \`
+            <div style="font-weight: bold; color: #f59e0b; margin-bottom: 6px;">📅 \${dateDisplayStr} 중식</div>
+            <div style="color: var(--td-color);">\${menuText}</div>
+        \`;
     }
+
     function getChecklistData() { return JSON.parse(localStorage.getItem('classBankChecklistCounts')) || {}; }
     function saveChecklistData(data) { localStorage.setItem('classBankChecklistCounts', JSON.stringify(data)); }
     function renderChecklist() {
@@ -905,12 +968,42 @@
     }
     function initTheme() { const savedTheme = localStorage.getItem('classBankTheme') || 'dark'; if (savedTheme === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; } else { document.body.classList.remove('light-mode'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; } }
     function toggleTheme() { const isLight = document.body.classList.toggle('light-mode'); if (isLight) { localStorage.setItem('classBankTheme', 'light'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; showToast('☀️ 라이트 모드로 전환되었습니다!'); } else { localStorage.setItem('classBankTheme', 'dark'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; showToast('🌙 다크 모드로 전환되었습니다!'); } }
+
+    /* 📸 통장 이미지 다운로드 기능 안정성 수정 */
     function downloadBankImage() {
         const targetElement = document.getElementById('printableRecordSection');
-        const deleteHeaders = targetElement.querySelectorAll('th:nth-child(5), td:nth-child(5)'); deleteHeaders.forEach(el => el.style.display = 'none');
-        showToast('📸 통장 기록 이미지를 생성하는 중입니다...'); const isLight = document.body.classList.contains('light-mode');
-        html2canvas(targetElement, { backgroundColor: isLight ? '#f8fafc' : '#0f172a', scale: 2, useCORS: true }).then(canvas => { deleteHeaders.forEach(el => el.style.display = ''); const link = document.createElement('a'); link.download = \`4-4반_통장기록_\${new Date().toISOString().substring(0, 10)}.png\`; link.href = canvas.toDataURL('image/png'); link.click(); showToast('✨ 통장 기록 이미지 저장이 완료되었습니다!'); }).catch(err => { deleteHeaders.forEach(el => el.style.display = ''); alert('이미지 생성 중 오류가 발생했습니다.'); console.error(err); });
+        if (!targetElement) return;
+
+        const deleteHeaders = targetElement.querySelectorAll('.hide-on-capture, th:last-child, td:last-child');
+        deleteHeaders.forEach(el => el.style.visibility = 'hidden');
+
+        showToast('📸 통장 기록 이미지를 생성하는 중입니다...');
+
+        const isLight = document.body.classList.contains('light-mode');
+
+        setTimeout(() => {
+            html2canvas(targetElement, {
+                backgroundColor: isLight ? '#ffffff' : '#0f172a',
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                deleteHeaders.forEach(el => el.style.visibility = 'visible');
+
+                const link = document.createElement('a');
+                link.download = \`4-4반_통장기록_\${new Date().toISOString().substring(0, 10)}.png\`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                showToast('✨ 통장 기록 이미지 저장이 완료되었습니다!');
+            }).catch(err => {
+                deleteHeaders.forEach(el => el.style.visibility = 'visible');
+                alert('이미지 저장 중 오류가 발생했습니다.');
+                console.error(err);
+            });
+        }, 100);
     }
+
     function fetchGimcheonWeather() {
         const weatherBox = document.getElementById('weatherBox'); weatherBox.innerHTML = '<div style="font-size: 12px; color: #64748b;">김천 날씨 정보 확인 중...</div>';
         fetch('https://api.open-meteo.com/v1/forecast?latitude=36.12&longitude=128.11&current_weather=true').then(res => res.json()).then(data => {
@@ -1075,13 +1168,11 @@
 </body>
 </html>`;
 
-    // 프로그램 전환 및 홈 표시 함수
     function showHome() {
       document.getElementById('portalHome').style.display = 'flex';
       const frame = document.getElementById('appFrame');
       frame.style.display = 'none';
       frame.srcdoc = '';
-
       updateNavButtons('home');
     }
 
