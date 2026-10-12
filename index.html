@@ -224,7 +224,7 @@
         <h2 class="card-title">4-4반 자산관리</h2>
         <p class="card-desc">
           월급, 퀴즈, 미션 등록부터 간식·자리배정 차감까지!<br>
-          학생별 현재 실시간 자산 잔액을 조회하고 관리합니다.
+          학생별 현재 실시간 자산 및 상세 거래 내역을 조회합니다.
         </p>
         <button class="enter-btn">자산관리 접속하기 ➔</button>
       </div>
@@ -246,7 +246,7 @@
   <iframe id="appFrame" class="app-viewport"></iframe>
 
   <script>
-    // 1. 자산관리 프로그램 (기존 기능 100% 보존)
+    // 1. 자산관리 프로그램 (학생별 상세 내역 및 항목 조회 기능 추가)
     const assetHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -283,6 +283,23 @@
     .admin-tag { background: rgba(255, 193, 7, 0.3); padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(255, 193, 7, 0.5); }
     .amount-plus { color: #71e5a1; font-weight: 600; }
     .amount-minus { color: #ff8a8a; font-weight: 600; }
+    .btn-detail { background: rgba(56, 189, 248, 0.25); border: 1px solid rgba(56, 189, 248, 0.5); color: #e0f2fe; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .btn-detail:hover { background: rgba(56, 189, 248, 0.5); color: #fff; transform: scale(1.05); }
+
+    /* 모달 레이아웃 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center; }
+    .modal-content { background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 18px; width: 90%; max-width: 620px; max-height: 80vh; display: flex; flex-direction: column; padding: 22px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 12px; margin-bottom: 15px; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
+    .modal-close { background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
+    .modal-close:hover { color: #fff; }
+    .modal-body { overflow-y: auto; flex: 1; margin-bottom: 10px; }
+    .modal-body::-webkit-scrollbar { width: 6px; }
+    .modal-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+    .badge-add { background: rgba(113, 229, 161, 0.2); color: #71e5a1; border: 1px solid rgba(113, 229, 161, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.78rem; font-weight: bold; }
+    .badge-sub { background: rgba(255, 138, 138, 0.2); color: #ff8a8a; border: 1px solid rgba(255, 138, 138, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.78rem; font-weight: bold; }
+    .btn-del-log { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+    .btn-del-log:hover { background: rgba(239, 68, 68, 0.6); color: #fff; }
   </style>
 </head>
 <body>
@@ -308,20 +325,50 @@
       </div>
       <div class="table-wrapper">
         <table>
-          <thead><tr><th>번호</th><th>이름</th><th>현재 자산</th></tr></thead>
+          <thead><tr><th>번호</th><th>이름</th><th>현재 자산</th><th>상세 내역</th></tr></thead>
           <tbody id="assetTableBody"></tbody>
         </table>
       </div>
     </div>
   </div>
+
+  <!-- 상세 내역 모달 -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalStudentName">학생 거래 상세 내역</h3>
+        <button class="modal-close" onclick="closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <table>
+          <thead>
+            <tr>
+              <th>일시</th>
+              <th>구분</th>
+              <th>항목</th>
+              <th>금액</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="detailTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "class4_4_assets_data";
+    const LOGS_KEY = "class4_4_assets_logs";
     const studentList = ["김예은", "김윤솔", "김재은", "나헤지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN님", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
     let studentAssets = {};
+    let studentLogs = {}; // 학생별 상세 내역 저장 객체
     const categoryData = { add: ["월급", "QUIZ", "미션", "선생님보너스"], subtract: ["적금예금", "뽑기", "간식", "자리배정"] };
+
     window.onload = function() { initData(); initStudentSelect(); renderAssetTable(); };
+
     function initData() {
       const savedData = localStorage.getItem(STORAGE_KEY);
+      const savedLogs = localStorage.getItem(LOGS_KEY);
       if (savedData) {
         studentAssets = JSON.parse(savedData);
         studentList.forEach(name => { if (studentAssets[name] === undefined) studentAssets[name] = 0; });
@@ -329,14 +376,29 @@
         studentList.forEach(name => { studentAssets[name] = 0; });
         saveData();
       }
-    }
-    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); }
-    function resetAllData() {
-      if (confirm("정말로 모든 학생의 자산 데이터를 0원으로 초기화하시겠습니까?")) {
-        studentList.forEach(name => { studentAssets[name] = 0; });
-        saveData(); renderAssetTable(); alert("모든 자산 데이터가 초기화되었습니다.");
+
+      if (savedLogs) {
+        studentLogs = JSON.parse(savedLogs);
+        studentList.forEach(name => { if (!studentLogs[name]) studentLogs[name] = []; });
+      } else {
+        studentList.forEach(name => { studentLogs[name] = []; });
+        saveLogs();
       }
     }
+
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); }
+    function saveLogs() { localStorage.setItem(LOGS_KEY, JSON.stringify(studentLogs)); }
+
+    function resetAllData() {
+      if (confirm("정말로 모든 학생의 자산 데이터와 상세 거래 내역을 초기화하시겠습니까?")) {
+        studentList.forEach(name => {
+          studentAssets[name] = 0;
+          studentLogs[name] = [];
+        });
+        saveData(); saveLogs(); renderAssetTable(); alert("모든 자산 데이터와 거래 내역이 초기화되었습니다.");
+      }
+    }
+
     function initStudentSelect() {
       const select = document.getElementById("studentName");
       select.innerHTML = '<option value="" disabled selected>학생 이름을 선택하세요</option>';
@@ -344,6 +406,7 @@
         const option = document.createElement("option"); option.value = name; option.textContent = name; select.appendChild(option);
       });
     }
+
     function updateCategoryOptions() {
       const type = document.getElementById("transactionType").value;
       const categorySelect = document.getElementById("category");
@@ -355,17 +418,20 @@
         });
       }
     }
+
     function renderAssetTable(filterText = "") {
       const tbody = document.getElementById("assetTableBody"); tbody.innerHTML = ""; let index = 1;
       studentList.forEach(name => {
         if (name.includes(filterText)) {
           const row = document.createElement("tr"); const balance = studentAssets[name] || 0; const isAdmin = name.includes("ADMIN");
-          row.innerHTML = \`<td>\${index++}</td><td>\${name} \${isAdmin ? '<span class="admin-tag">관리자</span>' : ''}</td><td class="\${balance >= 0 ? 'amount-plus' : 'amount-minus'}">\${balance.toLocaleString()} 원</td>\`;
+          row.innerHTML = \`<td>\${index++}</td><td>\${name} \${isAdmin ? '<span class="admin-tag">관리자</span>' : ''}</td><td class="\${balance >= 0 ? 'amount-plus' : 'amount-minus'}">\${balance.toLocaleString()} 원</td><td><button class="btn-detail" onclick="openDetailModal('\${name}')">🔍 내역</button></td>\`;
           tbody.appendChild(row);
         }
       });
     }
+
     function filterTable() { renderAssetTable(document.getElementById("searchInput").value.trim()); }
+
     document.getElementById("assetForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const name = document.getElementById("studentName").value;
@@ -373,10 +439,27 @@
       const category = document.getElementById("category").value;
       const amount = parseInt(document.getElementById("amount").value, 10);
       if (isNaN(amount) || amount <= 0) return;
+
       if (type === "add") studentAssets[name] += amount;
       else if (type === "subtract") studentAssets[name] -= amount;
+
+      // 거래 내역 생성 및 추가
+      const now = new Date();
+      const timeString = \`\${now.getMonth()+1}/\${now.getDate()} \${now.getHours().toString().padStart(2,'0')}:\${now.getMinutes().toString().padStart(2,'0')}\`;
+      
+      if (!studentLogs[name]) studentLogs[name] = [];
+      studentLogs[name].unshift({
+        id: Date.now(),
+        time: timeString,
+        type: type,
+        category: category,
+        amount: amount
+      });
+
       saveData();
+      saveLogs();
       renderAssetTable(document.getElementById("searchInput").value.trim());
+
       const typeText = type === "add" ? "추가" : "차감";
       const alertBox = document.getElementById("alertBox");
       alertBox.style.display = "block";
@@ -385,11 +468,72 @@
       document.getElementById("category").disabled = true;
       document.getElementById("category").innerHTML = '<option value="" disabled selected>구분을 먼저 선택하세요</option>';
     });
+
+    /* 상세 내역 모달 열기 */
+    function openDetailModal(name) {
+      document.getElementById("modalStudentName").textContent = \`💎 \${name} 학생 거래 내역\`;
+      renderDetailTable(name);
+      document.getElementById("detailModal").style.display = "flex";
+    }
+
+    function closeDetailModal() {
+      document.getElementById("detailModal").style.display = "none";
+    }
+
+    function renderDetailTable(name) {
+      const tbody = document.getElementById("detailTableBody");
+      tbody.innerHTML = "";
+      const logs = studentLogs[name] || [];
+
+      if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color: #94a3b8; padding: 20px;">등록된 거래 내역이 없습니다.</td></tr>';
+        return;
+      }
+
+      logs.forEach((log) => {
+        const row = document.createElement("tr");
+        const isAdd = log.type === "add";
+        const badgeClass = isAdd ? "badge-add" : "badge-sub";
+        const badgeText = isAdd ? "추가(+)" : "차감(-)";
+        const amountClass = isAdd ? "amount-plus" : "amount-minus";
+        const sign = isAdd ? "+" : "-";
+
+        row.innerHTML = \`
+          <td style="font-size: 0.8rem; color: #cbd5e1;">\${log.time}</td>
+          <td><span class="\${badgeClass}">\${badgeText}</span></td>
+          <td><strong>\${log.category}</strong></td>
+          <td class="\${amountClass}">\${sign}\${log.amount.toLocaleString()}원</td>
+          <td><button class="btn-del-log" onclick="deleteLog('\${name}', \${log.id})">삭제</button></td>
+        \`;
+        tbody.appendChild(row);
+      });
+    }
+
+    function deleteLog(name, logId) {
+      if (confirm("해당 내역을 삭제하시겠습니까? (삭제된 금액은 자산 잔액에 자동 반영됩니다)")) {
+        const logs = studentLogs[name] || [];
+        const targetIndex = logs.findIndex(l => l.id === logId);
+        if (targetIndex !== -1) {
+          const log = logs[targetIndex];
+          // 금액 복구/차감 계산
+          if (log.type === "add") {
+            studentAssets[name] -= log.amount;
+          } else if (log.type === "subtract") {
+            studentAssets[name] += log.amount;
+          }
+          logs.splice(targetIndex, 1);
+          saveData();
+          saveLogs();
+          renderAssetTable(document.getElementById("searchInput").value.trim());
+          renderDetailTable(name);
+        }
+      }
+    }
   <\/script>
 </body>
 </html>`;
 
-    // 2. 은행관리 프로그램 (급식 데이터 이미지 정밀 매핑 및 통장 다운로드 수정)
+    // 2. 은행관리 프로그램 (기존 기능 100% 보존)
     const bankHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -869,7 +1013,6 @@
         return "💡 궁금한 내용을 물어보세요! 예: '김천 날씨', '오늘 급식', '김예은 체크 몇번?' 등";
     }
 
-    /* 🍱 이미지 식단표 기준 날짜별 급식 매핑 수정 */
     function loadSchoolMeal() {
         const mealBox = document.getElementById('mobileMealBox');
         const selectedDateStr = document.getElementById('date').value;
@@ -969,7 +1112,6 @@
     function initTheme() { const savedTheme = localStorage.getItem('classBankTheme') || 'dark'; if (savedTheme === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; } else { document.body.classList.remove('light-mode'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; } }
     function toggleTheme() { const isLight = document.body.classList.toggle('light-mode'); if (isLight) { localStorage.setItem('classBankTheme', 'light'); document.getElementById('themeToggleBtn').textContent = '🌙 다크모드'; showToast('☀️ 라이트 모드로 전환되었습니다!'); } else { localStorage.setItem('classBankTheme', 'dark'); document.getElementById('themeToggleBtn').textContent = '☀️ 라이트모드'; showToast('🌙 다크 모드로 전환되었습니다!'); } }
 
-    /* 📸 통장 이미지 다운로드 기능 안정성 수정 */
     function downloadBankImage() {
         const targetElement = document.getElementById('printableRecordSection');
         if (!targetElement) return;
