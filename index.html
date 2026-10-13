@@ -224,7 +224,7 @@
         <h2 class="card-title">4-4반 자산관리</h2>
         <p class="card-desc">
           월급, 퀴즈, 미션 등록부터 간식·자리배정 차감까지!<br>
-          학생별 현재 실시간 자산 및 상세 거래 내역을 조회합니다.
+          비밀번호 관리자 패널(44PROGRAM) 및 삭제기록 복구 연동.
         </p>
         <button class="enter-btn">자산관리 접속하기 ➔</button>
       </div>
@@ -246,7 +246,7 @@
   <iframe id="appFrame" class="app-viewport"></iframe>
 
   <script>
-    // 1. 자산관리 프로그램 (학생별 상세 내역 및 항목 조회 기능 추가)
+    // 1. 자산관리 프로그램 (차감 기능, 마스킹 비밀번호 44PROGRAM 관리자패널, 특정학생 자산 제어, 기록 복구 연동)
     const assetHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -259,7 +259,10 @@
     .app-container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.3fr; gap: 25px; }
     @media (max-width: 850px) { .app-container { grid-template-columns: 1fr; } }
     .glass-card { background: rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.25); padding: 25px; height: fit-content; }
-    h1, h2 { text-align: center; margin-bottom: 20px; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1, h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .btn-admin-open { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+    .btn-admin-open:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(239, 68, 68, 0.6); }
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: rgba(255, 255, 255, 0.9); }
     select, input { width: 100%; padding: 11px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); outline: none; color: #fff; font-size: 0.95rem; transition: all 0.3s ease; }
@@ -287,8 +290,8 @@
     .btn-detail:hover { background: rgba(56, 189, 248, 0.5); color: #fff; transform: scale(1.05); }
 
     /* 모달 레이아웃 */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center; }
-    .modal-content { background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 18px; width: 90%; max-width: 620px; max-height: 80vh; display: flex; flex-direction: column; padding: 22px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); z-index: 2000; justify-content: center; align-items: center; }
+    .modal-content { background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 18px; width: 90%; max-width: 620px; max-height: 85vh; display: flex; flex-direction: column; padding: 22px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 12px; margin-bottom: 15px; }
     .modal-title { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
     .modal-close { background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
@@ -300,24 +303,42 @@
     .badge-sub { background: rgba(255, 138, 138, 0.2); color: #ff8a8a; border: 1px solid rgba(255, 138, 138, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.78rem; font-weight: bold; }
     .btn-del-log { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
     .btn-del-log:hover { background: rgba(239, 68, 68, 0.6); color: #fff; }
+    .btn-restore { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+    .btn-restore:hover { background: rgba(16, 185, 129, 0.6); color: #fff; }
+
+    /* 패스워드 마스킹 모달 */
+    .auth-card { background: rgba(30, 41, 59, 0.98); border: 2px solid #ef4444; border-radius: 18px; padding: 25px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 0 30px rgba(239, 68, 68, 0.4); }
+    .auth-title { font-size: 1.15rem; font-weight: bold; color: #fca5a5; margin-bottom: 15px; }
+    .auth-input { text-align: center; letter-spacing: 6px; font-size: 1.2rem; margin-bottom: 15px; }
+    .auth-btn-group { display: flex; gap: 10px; }
+    .auth-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-confirm { background: #10b981; color: white; }
+    .btn-cancel { background: #64748b; color: white; }
+
+    /* 관리자 제어 패널 탭/섹션 */
+    .admin-section { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.15); }
+    .admin-sec-title { font-size: 1rem; font-weight: bold; color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
   <div class="app-container">
     <div class="glass-card">
-      <h1>4-4반 자산 등록</h1>
+      <div class="header-bar">
+        <h1>💎 4-4반 자산 등록</h1>
+        <button class="btn-admin-open" onclick="openAdminPasswordModal()">⚙️ 관리자 패널</button>
+      </div>
       <form id="assetForm">
         <div class="form-group"><label for="studentName">이름 선택</label><select id="studentName" required><option value="" disabled selected>학생 이름을 선택하세요</option></select></div>
-        <div class="form-group"><label for="transactionType">구분 선택</label><select id="transactionType" required onchange="updateCategoryOptions()"><option value="" disabled selected>자산추가 또는 차감을 선택하세요</option><option value="add">자산추가 (+)</option><option value="subtract">차감 (-)</option></select></div>
+        <div class="form-group"><label for="transactionType">구분 선택</label><select id="transactionType" required onchange="updateCategoryOptions()"><option value="" disabled selected>자산추가 또는 차감을 선택하세요</option><option value="add">자산추가 (+)</option><option value="subtract">자산차감 (-)</option></select></div>
         <div class="form-group"><label for="category">상세 항목</label><select id="category" required disabled><option value="" disabled selected>구분을 먼저 선택하세요</option></select></div>
-        <div class="form-group"><label for="amount">금액</label><input type="number" id="amount" placeholder="금액을 입력하세요" min="1" required></div>
+        <div class="form-group"><label for="amount">금액 (원)</label><input type="number" id="amount" placeholder="금액을 입력하세요" min="1" required></div>
         <button type="submit" class="btn-submit">등록하기</button>
       </form>
       <div id="alertBox" class="alert-box"></div>
     </div>
     <div class="glass-card">
       <div class="table-header">
-        <h2>학생별 자산 현황표</h2>
+        <h2>📊 학생별 자산 현황표</h2>
         <div class="table-tools">
           <input type="text" id="searchInput" class="search-input" placeholder="이름 검색..." oninput="filterTable()">
           <button type="button" class="btn-reset" onclick="resetAllData()">초기화</button>
@@ -356,19 +377,102 @@
     </div>
   </div>
 
+  <!-- 비밀번호 마스킹 인증 모달 -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="auth-card">
+      <div class="auth-title">🔑 관리자 비밀번호 인증</div>
+      <input type="password" id="adminPasswordInput" class="auth-input" placeholder="비밀번호 입력" maxlength="20" onkeyup="if(event.key==='Enter') verifyAdminPassword()">
+      <div class="auth-btn-group">
+        <button class="auth-btn btn-confirm" onclick="verifyAdminPassword()">인증확인</button>
+        <button class="auth-btn btn-cancel" onclick="closePasswordModal()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 관리자 패널 모달 -->
+  <div class="modal-overlay" id="adminControlModal">
+    <div class="modal-content" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #fca5a5;">🛠️ 자산 관리자 전용 제어 패널</h3>
+        <button class="modal-close" onclick="closeAdminControlModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- 1. 특정 학생 자산 추가 & 차감 섹션 -->
+        <div class="admin-section">
+          <div class="admin-sec-title"><span>👤 특정 학생 자산 조정 (추가 / 차감)</span></div>
+          <div class="form-group"><label for="adminStudentSelect">학생 선택</label><select id="adminStudentSelect"><option value="">-- 학생 선택 --</option></select></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label for="adminActionType">조정 구분</label>
+              <select id="adminActionType">
+                <option value="add">자산 추가 (+)</option>
+                <option value="subtract">자산 차감 (-)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="adminAmount">금액 (원)</label>
+              <input type="number" id="adminAmount" placeholder="금액 입력" min="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="adminReason">조정 사유/내용</label>
+            <input type="text" id="adminReason" placeholder="예: 관리자 특별 보너스, 기물 파손 차감 등">
+          </div>
+          <button class="btn-submit" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);" onclick="submitAdminAdjustment()">학생 자산 조정 반영</button>
+        </div>
+
+        <!-- 2. 삭제된 거래 기록 복구 섹션 -->
+        <div class="admin-section">
+          <div class="admin-sec-title">
+            <span>🗑️ 삭제된 기록 복구함</span>
+            <button class="btn-reset" onclick="renderDeletedLogsTable()">새로고침</button>
+          </div>
+          <div class="table-wrapper" style="max-height: 220px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>학생</th>
+                  <th>구분</th>
+                  <th>항목</th>
+                  <th>금액</th>
+                  <th>복구</th>
+                </tr>
+              </thead>
+              <tbody id="deletedLogsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "class4_4_assets_data";
     const LOGS_KEY = "class4_4_assets_logs";
-    const studentList = ["김예은", "김윤솔", "김재은", "나헤지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN님", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
-    let studentAssets = {};
-    let studentLogs = {}; // 학생별 상세 내역 저장 객체
-    const categoryData = { add: ["월급", "QUIZ", "미션", "선생님보너스"], subtract: ["적금예금", "뽑기", "간식", "자리배정"] };
+    const DELETED_LOGS_KEY = "class4_4_assets_deleted_logs";
+    const ADMIN_PASS = "44PROGRAM";
 
-    window.onload = function() { initData(); initStudentSelect(); renderAssetTable(); };
+    const studentList = ["김예은", "김윤솔", "김재은", "나혜지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN님", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
+    let studentAssets = {};
+    let studentLogs = {}; // 학생별 상세 내역
+    let deletedLogs = []; // 삭제된 거래 내역 보관용
+
+    const categoryData = { 
+      add: ["월급", "QUIZ", "미션", "선생님보너스"], 
+      subtract: ["적금예금", "뽑기", "간식", "자리배정"] 
+    };
+
+    window.onload = function() { 
+      initData(); 
+      initStudentSelect(); 
+      renderAssetTable(); 
+    };
 
     function initData() {
       const savedData = localStorage.getItem(STORAGE_KEY);
       const savedLogs = localStorage.getItem(LOGS_KEY);
+      const savedDeletedLogs = localStorage.getItem(DELETED_LOGS_KEY);
+
       if (savedData) {
         studentAssets = JSON.parse(savedData);
         studentList.forEach(name => { if (studentAssets[name] === undefined) studentAssets[name] = 0; });
@@ -384,26 +488,43 @@
         studentList.forEach(name => { studentLogs[name] = []; });
         saveLogs();
       }
+
+      if (savedDeletedLogs) {
+        deletedLogs = JSON.parse(savedDeletedLogs);
+      } else {
+        deletedLogs = [];
+        saveDeletedLogs();
+      }
     }
 
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); }
     function saveLogs() { localStorage.setItem(LOGS_KEY, JSON.stringify(studentLogs)); }
+    function saveDeletedLogs() { localStorage.setItem(DELETED_LOGS_KEY, JSON.stringify(deletedLogs)); }
 
     function resetAllData() {
-      if (confirm("정말로 모든 학생의 자산 데이터와 상세 거래 내역을 초기화하시겠습니까?")) {
-        studentList.forEach(name => {
-          studentAssets[name] = 0;
-          studentLogs[name] = [];
-        });
-        saveData(); saveLogs(); renderAssetTable(); alert("모든 자산 데이터와 거래 내역이 초기화되었습니다.");
-      }
+      openAdminPasswordModal(function() {
+        if (confirm("정말로 모든 학생의 자산 데이터 및 거래 내역을 초기화하시겠습니까?")) {
+          studentList.forEach(name => {
+            studentAssets[name] = 0;
+            studentLogs[name] = [];
+          });
+          deletedLogs = [];
+          saveData(); saveLogs(); saveDeletedLogs();
+          renderAssetTable(); 
+          alert("모든 자산 데이터가 초기화되었습니다.");
+        }
+      });
     }
 
     function initStudentSelect() {
       const select = document.getElementById("studentName");
+      const adminSelect = document.getElementById("adminStudentSelect");
       select.innerHTML = '<option value="" disabled selected>학생 이름을 선택하세요</option>';
+      adminSelect.innerHTML = '<option value="">-- 학생 선택 --</option>';
+
       studentList.forEach(name => {
         const option = document.createElement("option"); option.value = name; option.textContent = name; select.appendChild(option);
+        const optAdmin = document.createElement("option"); optAdmin.value = name; optAdmin.textContent = name; adminSelect.appendChild(optAdmin);
       });
     }
 
@@ -443,7 +564,6 @@
       if (type === "add") studentAssets[name] += amount;
       else if (type === "subtract") studentAssets[name] -= amount;
 
-      // 거래 내역 생성 및 추가
       const now = new Date();
       const timeString = \`\${now.getMonth()+1}/\${now.getDate()} \${now.getHours().toString().padStart(2,'0')}:\${now.getMinutes().toString().padStart(2,'0')}\`;
       
@@ -469,7 +589,7 @@
       document.getElementById("category").innerHTML = '<option value="" disabled selected>구분을 먼저 선택하세요</option>';
     });
 
-    /* 상세 내역 모달 열기 */
+    /* 상세 내역 모달 */
     function openDetailModal(name) {
       document.getElementById("modalStudentName").textContent = \`💎 \${name} 학생 거래 내역\`;
       renderDetailTable(name);
@@ -510,30 +630,175 @@
     }
 
     function deleteLog(name, logId) {
-      if (confirm("해당 내역을 삭제하시겠습니까? (삭제된 금액은 자산 잔액에 자동 반영됩니다)")) {
+      if (confirm("해당 내역을 삭제하시겠습니까? (삭제된 금액은 자산에 자동 반환되며 기록 복구함에 보관됩니다)")) {
         const logs = studentLogs[name] || [];
         const targetIndex = logs.findIndex(l => l.id === logId);
         if (targetIndex !== -1) {
           const log = logs[targetIndex];
-          // 금액 복구/차감 계산
+          
+          // 금액 원복 (추가되었던 건 차감, 차감되었던 건 다시 보충)
           if (log.type === "add") {
             studentAssets[name] -= log.amount;
           } else if (log.type === "subtract") {
             studentAssets[name] += log.amount;
           }
+
+          // 삭제 보관함으로 이동
+          deletedLogs.unshift({
+            ...log,
+            studentName: name,
+            deletedAt: new Date().toLocaleString()
+          });
+
           logs.splice(targetIndex, 1);
           saveData();
           saveLogs();
+          saveDeletedLogs();
+
           renderAssetTable(document.getElementById("searchInput").value.trim());
           renderDetailTable(name);
         }
+      }
+    }
+
+    /* 관리자 인증 및 패널 제어 */
+    let adminAuthCallback = null;
+
+    function openAdminPasswordModal(cb) {
+      adminAuthCallback = cb || null;
+      document.getElementById("adminPasswordInput").value = "";
+      document.getElementById("passwordModal").style.display = "flex";
+      document.getElementById("adminPasswordInput").focus();
+    }
+
+    function closePasswordModal() {
+      document.getElementById("passwordModal").style.display = "none";
+      adminAuthCallback = null;
+    }
+
+    function verifyAdminPassword() {
+      const pass = document.getElementById("adminPasswordInput").value;
+      if (pass === ADMIN_PASS) {
+        const cb = adminAuthCallback;
+        closePasswordModal();
+        if (cb) {
+          cb();
+        } else {
+          openAdminControlModal();
+        }
+      } else {
+        alert("❌ 비밀번호가 올바르지 않습니다! (힌트: 44PROGRAM)");
+      }
+    }
+
+    function openAdminControlModal() {
+      renderDeletedLogsTable();
+      document.getElementById("adminControlModal").style.display = "flex";
+    }
+
+    function closeAdminControlModal() {
+      document.getElementById("adminControlModal").style.display = "none";
+    }
+
+    /* 특정 학생 자산 추가 & 차감 (관리자 직권) */
+    function submitAdminAdjustment() {
+      const name = document.getElementById("adminStudentSelect").value;
+      const type = document.getElementById("adminActionType").value;
+      const amount = parseInt(document.getElementById("adminAmount").value, 10);
+      const reason = document.getElementById("adminReason").value.trim() || (type === "add" ? "관리자 자산추가" : "관리자 자산차감");
+
+      if (!name) { alert("학생을 선택해 주세요!"); return; }
+      if (isNaN(amount) || amount <= 0) { alert("올바른 금액을 입력해 주세요!"); return; }
+
+      if (type === "add") studentAssets[name] += amount;
+      else if (type === "subtract") studentAssets[name] -= amount;
+
+      const now = new Date();
+      const timeString = \`\${now.getMonth()+1}/\${now.getDate()} \${now.getHours().toString().padStart(2,'0')}:\${now.getMinutes().toString().padStart(2,'0')}\`;
+
+      if (!studentLogs[name]) studentLogs[name] = [];
+      studentLogs[name].unshift({
+        id: Date.now(),
+        time: timeString,
+        type: type,
+        category: \`[관리자] \${reason}\`,
+        amount: amount
+      });
+
+      saveData();
+      saveLogs();
+      renderAssetTable(document.getElementById("searchInput").value.trim());
+
+      document.getElementById("adminAmount").value = "";
+      document.getElementById("adminReason").value = "";
+      alert(\`[반영 완료] '\${name}' 학생에게 \${amount.toLocaleString()}원 \${type === "add" ? "추가" : "차감"} 처리되었습니다.\`);
+    }
+
+    /* 삭제된 기록 복구 기능 */
+    function renderDeletedLogsTable() {
+      const tbody = document.getElementById("deletedLogsTableBody");
+      tbody.innerHTML = "";
+
+      if (deletedLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color: #cbd5e1; padding: 15px;">삭제된 기록이 없습니다.</td></tr>';
+        return;
+      }
+
+      deletedLogs.forEach((log, index) => {
+        const row = document.createElement("tr");
+        const isAdd = log.type === "add";
+        const badgeClass = isAdd ? "badge-add" : "badge-sub";
+        const badgeText = isAdd ? "추가(+)" : "차감(-)";
+
+        row.innerHTML = \`
+          <td><strong>\${log.studentName}</strong></td>
+          <td><span class="\${badgeClass}">\${badgeText}</span></td>
+          <td>\${log.category}</td>
+          <td>\${log.amount.toLocaleString()}원</td>
+          <td><button class="btn-restore" onclick="restoreDeletedLog(\${index})">복구</button></td>
+        \`;
+        tbody.appendChild(row);
+      });
+    }
+
+    function restoreDeletedLog(index) {
+      const item = deletedLogs[index];
+      if (!item) return;
+
+      if (confirm(\`'\${item.studentName}' 학생의 '\${item.category}' (\${item.amount.toLocaleString()}원) 기록을 복구하시겠습니까?\`)) {
+        // 금액 재반영
+        if (item.type === "add") {
+          studentAssets[item.studentName] += item.amount;
+        } else if (item.type === "subtract") {
+          studentAssets[item.studentName] -= item.amount;
+        }
+
+        // 학생 로그로 재이동
+        if (!studentLogs[item.studentName]) studentLogs[item.studentName] = [];
+        studentLogs[item.studentName].unshift({
+          id: Date.now(),
+          time: item.time,
+          type: item.type,
+          category: item.category,
+          amount: item.amount
+        });
+
+        deletedLogs.splice(index, 1);
+
+        saveData();
+        saveLogs();
+        saveDeletedLogs();
+
+        renderAssetTable(document.getElementById("searchInput").value.trim());
+        renderDeletedLogsTable();
+        alert(\`'\${item.studentName}' 학생의 거래 기록이 성공적으로 복구되었습니다!\`);
       }
     }
   <\/script>
 </body>
 </html>`;
 
-    // 2. 은행관리 프로그램 (기존 기능 100% 보존)
+    // 2. 은행관리 프로그램 (기존 원본 기능 100% 보존)
     const bankHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
