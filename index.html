@@ -170,7 +170,7 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
     }
 
     .nav-buttons {
@@ -205,6 +205,27 @@
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
     }
 
+    .btn-add-account {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: 1px solid #34d399;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: none; /* admin0412 접속 시에만 표시 */
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-add-account:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
     .user-info {
       font-size: 0.85rem;
       color: #38bdf8;
@@ -230,6 +251,55 @@
 
     .btn-logout:hover {
       background: rgba(239, 68, 68, 0.6);
+      color: #fff;
+    }
+
+    /* 계정 추가 모달 창 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 18px;
+      padding: 25px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
       color: #fff;
     }
 
@@ -382,6 +452,27 @@
     </div>
   </div>
 
+  <!-- 계정 추가 패널 모달 (admin0412 전용) -->
+  <div class="modal-overlay" id="addAccountModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ 신규 계정 추가</h3>
+        <button class="modal-close" onclick="closeAddAccountModal()">✕</button>
+      </div>
+      <form class="login-form" id="addAccountForm" onsubmit="submitNewAccount(event)">
+        <div class="form-group">
+          <label for="newId">신규 아이디 (ID)</label>
+          <input type="text" id="newId" placeholder="추가할 ID 입력" required>
+        </div>
+        <div class="form-group">
+          <label for="newPw">신규 비밀번호 (PW)</label>
+          <input type="password" id="newPw" placeholder="추가할 PW 입력" required>
+        </div>
+        <button type="submit" class="btn-login" style="width: 100%; margin-top: 10px;">계정 추가하기</button>
+      </form>
+    </div>
+  </div>
+
   <!-- 상단 내비게이션 -->
   <header>
     <div class="logo" onclick="showHome()">
@@ -393,6 +484,9 @@
         <button class="nav-btn" id="btnAsset" onclick="loadProgram('asset')">💰 자산관리</button>
         <button class="nav-btn" id="btnBank" onclick="loadProgram('bank')">🏦 은행관리</button>
       </div>
+      <!-- admin0412 계정 전용 계정 추가 버튼 -->
+      <button class="btn-add-account" id="btnAddAccount" onclick="openAddAccountModal()">➕ 계정 추가</button>
+
       <div class="user-info" id="userInfoDisplay">
         <span id="currentUserId">USER</span>
         <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
@@ -434,8 +528,8 @@
   <iframe id="appFrame" class="app-viewport"></iframe>
 
   <script>
-    // 시스템 허용 계정 (ID / PW) 목록
-    const validAccounts = {
+    // 기본 허용 계정 목록
+    const defaultAccounts = {
       "admin0412": "Admin0412",
       "매점": "snack!",
       "카지노": "won!",
@@ -443,15 +537,19 @@
       "OPENAPI": "API!"
     };
 
-    // 로그인 확인 및 초기화
+    // 저장된 신규 추가 계정 로드
+    function getStoredAccounts() {
+      const stored = localStorage.getItem("portal_custom_accounts");
+      return stored ? JSON.parse(stored) : {};
+    }
+
+    // 현재 로그인된 유저 ID (새로고침 시 초기화됨)
+    let currentLoggedUser = null;
+
+    // 페이지 로드 시 - 새로고침하면 무조건 자동 로그아웃 상태가 됨
     window.addEventListener('DOMContentLoaded', () => {
-      const loggedUser = sessionStorage.getItem('portal_user');
-      if (loggedUser) {
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('currentUserId').textContent = loggedUser + " 님";
-      } else {
-        document.getElementById('loginOverlay').style.display = 'flex';
-      }
+      document.getElementById('loginOverlay').style.display = 'flex';
+      currentLoggedUser = null;
     });
 
     // 로그인 처리
@@ -460,12 +558,22 @@
       const idInput = document.getElementById('loginId').value.trim();
       const pwInput = document.getElementById('loginPw').value;
 
-      if (validAccounts[idInput] && validAccounts[idInput] === pwInput) {
+      const customAccounts = getStoredAccounts();
+      const allAccounts = { ...defaultAccounts, ...customAccounts };
+
+      if (allAccounts[idInput] && allAccounts[idInput] === pwInput) {
         alert(`로그인 성공! 환영합니다, ${idInput}님.`);
-        sessionStorage.setItem('portal_user', idInput);
+        currentLoggedUser = idInput;
         document.getElementById('currentUserId').textContent = idInput + " 님";
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('loginForm').reset();
+
+        // admin0412 접속 시 계정 추가 패널 활성화
+        if (idInput === "admin0412") {
+          document.getElementById('btnAddAccount').style.display = 'flex';
+        } else {
+          document.getElementById('btnAddAccount').style.display = 'none';
+        }
       } else {
         alert("❌ 아이디 또는 비밀번호가 올바르지 않습니다.");
       }
@@ -476,16 +584,47 @@
       alert("관리자(김지유)님에게 요청하세요");
     }
 
+    // 계정 추가 모달 열기/닫기
+    function openAddAccountModal() {
+      document.getElementById('addAccountModal').style.display = 'flex';
+    }
+
+    function closeAddAccountModal() {
+      document.getElementById('addAccountModal').style.display = 'none';
+      document.getElementById('addAccountForm').reset();
+    }
+
+    // 신규 계정 추가 처리 (admin0412)
+    function submitNewAccount(e) {
+      e.preventDefault();
+      const newId = document.getElementById('newId').value.trim();
+      const newPw = document.getElementById('newPw').value;
+
+      if (!newId || !newPw) return;
+
+      const customAccounts = getStoredAccounts();
+      if (defaultAccounts[newId] || customAccounts[newId]) {
+        alert("이미 존재하는 아이디입니다!");
+        return;
+      }
+
+      customAccounts[newId] = newPw;
+      localStorage.setItem("portal_custom_accounts", JSON.stringify(customAccounts));
+      alert(`[계정 추가 완료] ID: ${newId} 계정이 추가되었습니다.`);
+      closeAddAccountModal();
+    }
+
     // 로그아웃 처리
     function handleLogout() {
       if (confirm("로그아웃 하시겠습니까?")) {
-        sessionStorage.removeItem('portal_user');
+        currentLoggedUser = null;
         showHome();
+        document.getElementById('btnAddAccount').style.display = 'none';
         document.getElementById('loginOverlay').style.display = 'flex';
       }
     }
 
-    // 1. 자산관리 프로그램 (힌트 제거 및 자산추가: 적금예금 / 차감: 뽑기 반영)
+    // 1. 자산관리 프로그램
     const assetHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -708,38 +847,32 @@
     let studentLogs = {};
     let deletedLogs = [];
 
-    // 자산 추가에 '적금예금', 자산 차감에 '뽑기' 추가 반영
     const categoryData = { 
       add: ["월급", "QUIZ", "미션", "적금예금", "선생님보너스"], 
       subtract: ["뽑기", "간식", "자리배정"] 
     };
 
-    /* 자산관리 AI 100가지 QA 데이터베이스 매핑 */
+    /* OPENAPI 계정 권한 확인 함수 */
+    function checkOpenApiAccess() {
+      if (window.parent && window.parent.currentLoggedUser === "OPENAPI") {
+        alert("⚠️ [테스트 계정 안내] OPENAPI 계정으로는 데이터가 저장되지 않습니다.");
+        return true;
+      }
+      return false;
+    }
+
     const assetAiQaList = [
       { q: ["안녕", "반가워", "하이"], a: "안녕하세요! 4-4반 자산관리 스마트 AI 도우미입니다." },
       { q: ["월급", "급여"], a: "월급은 자산추가(+) 구분에서 등록 가능합니다!" },
       { q: ["차감", "빼기", "손실"], a: "자산차감(-) 구분에서 뽑기, 간식, 자리배정 등을 차감할 수 있어요." },
       { q: ["복구", "살리기", "취소"], a: "삭제된 거래 내역은 관리자 패널의 [삭제된 기록 복구함]에서 언제든 복구할 수 있습니다!" },
       { q: ["초기화", "리셋"], a: "초기화 버튼을 누른 후 관리자 비밀번호를 입력하면 모든 자산 데이터가 초기화됩니다." },
-      { q: ["관리자", "어드민"], a: "우측 상단의 ⚙️ 관리자 패널 버튼을 누르면 특정 학생 자산 조정과 기록 복구를 진행할 수 있습니다." },
-      { q: ["간식"], a: "간식 구매 시 자산차감(-)으로 이동하여 해당 금액을 등록해 주세요." },
-      { q: ["자리배정", "자리"], a: "자리배정 차감 항목을 이용해 자산을 차감할 수 있습니다." },
-      { q: ["뽑기"], a: "뽑기 진행 시 차감(-) 항목에서 뽑기를 선택하여 자산을 차감하세요!" },
-      { q: ["퀴즈", "quiz"], a: "QUIZ 항목은 자산추가(+) 구분에서 등록할 수 있습니다." },
-      { q: ["미션"], a: "미션 완수 시 자산추가(+) 구분에서 미션을 선택하고 등록하세요." },
-      { q: ["보너스"], a: "선생님보너스는 자산추가(+) 항목에서 등록 가능합니다." },
-      { q: ["적금예금"], a: "적금예금은 자산추가(+) 항목에서 등록 가능합니다." },
-      { q: ["검색"], a: "현황표 상단의 이름 검색창에 이름을 입력하면 실시간으로 해당 학생을 찾을 수 있습니다." },
-      { q: ["내역"], a: "현황표 우측의 🔍 내역 버튼을 클릭하면 학생별 상세 거래 내역을 볼 수 있습니다." },
-      { q: ["삭제"], a: "상세 거래 내역 모달창에서 삭제 버튼을 누르면 해당 금액이 자산에 자동 원복되고 삭제 복구함으로 이동합니다." },
-      { q: ["1등", "최고 자산"], a: "자산 현황표에서 현재 자산이 가장 높은 학생을 쉽게 확인하실 수 있습니다!" },
-      { q: ["마이너스", "음수"], a: "자산 차감이 많아지면 자산 금액이 빨간색 마이너스로 표시됩니다." },
-      { q: ["플러스", "양수"], a: "자산이 플러스 상태이면 초록색 금액으로 안전하게 표시됩니다." }
+      { q: ["관리자", "어드민"], a: "우측 상단의 ⚙️ 관리자 패널 버튼을 누르면 특정 학생 자산 조정과 기록 복구를 진행할 수 있습니다." }
     ];
 
     for (let i = 20; i <= 100; i++) {
       assetAiQaList.push({
-        q: [\`질문\${i}\`, \`자산팁\${i}\`, \`기능\${i}\`, \`도움\${i-19}\`],
+        q: [\`질문\${i}\`, \`자산팁\${i}\`],
         a: \`[4-4반 자산 가이드 #\${i}] 자산 등록, 차감, 복구 및 관리자 패널 사용법에 대해 궁금한 점이 있으시면 언제든지 물어보세요!\`
       });
     }
@@ -818,11 +951,21 @@
       }
     }
 
-    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); }
-    function saveLogs() { localStorage.setItem(LOGS_KEY, JSON.stringify(studentLogs)); }
-    function saveDeletedLogs() { localStorage.setItem(DELETED_LOGS_KEY, JSON.stringify(deletedLogs)); }
+    function saveData() { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(studentAssets)); 
+    }
+    function saveLogs() { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem(LOGS_KEY, JSON.stringify(studentLogs)); 
+    }
+    function saveDeletedLogs() { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem(DELETED_LOGS_KEY, JSON.stringify(deletedLogs)); 
+    }
 
     function resetAllData() {
+      if (checkOpenApiAccess()) return;
       openAdminPasswordModal(function() {
         if (confirm("정말로 모든 학생의 자산 데이터 및 거래 내역을 초기화하시겠습니까?")) {
           studentList.forEach(name => {
@@ -876,6 +1019,8 @@
 
     document.getElementById("assetForm").addEventListener("submit", function(e) {
       e.preventDefault();
+      if (checkOpenApiAccess()) return;
+
       const name = document.getElementById("studentName").value;
       const type = document.getElementById("transactionType").value;
       const category = document.getElementById("category").value;
@@ -950,6 +1095,7 @@
     }
 
     function deleteLog(name, logId) {
+      if (checkOpenApiAccess()) return;
       if (confirm("해당 내역을 삭제하시겠습니까? (삭제된 금액은 자산에 자동 반환되며 기록 복구함에 보관됩니다)")) {
         const logs = studentLogs[name] || [];
         const targetIndex = logs.findIndex(l => l.id === logId);
@@ -1014,6 +1160,7 @@
     }
 
     function submitAdminAdjustment() {
+      if (checkOpenApiAccess()) return;
       const name = document.getElementById("adminStudentSelect").value;
       const type = document.getElementById("adminActionType").value;
       const amount = parseInt(document.getElementById("adminAmount").value, 10);
@@ -1073,6 +1220,7 @@
     }
 
     function restoreDeletedLog(index) {
+      if (checkOpenApiAccess()) return;
       const item = deletedLogs[index];
       if (!item) return;
 
@@ -1107,7 +1255,7 @@
 </body>
 </html>`;
 
-    // 2. 은행관리 프로그램 (기존 기능 100% 유지)
+    // 2. 은행관리 프로그램
     const bankHtmlSrc = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1533,6 +1681,16 @@
     const studentList = ["김예은", "김윤솔", "김재은", "나혜지", "박솔아", "박주아", "박준희", "송지아", "신다원", "전소현", "전시은", "주예진", "김규담", "김성현", "김지유ADMIN", "김혜준", "박서한", "박우준", "신유찬", "안재현", "이서빈", "이승운", "이시우", "장재훈", "전지훈", "정유재"];
     const todayISO = new Date().toISOString().substring(0, 10);
     document.getElementById('date').value = todayISO; document.getElementById('adminDate').value = todayISO;
+    
+    /* OPENAPI 계정 권한 확인 함수 */
+    function checkOpenApiAccess() {
+      if (window.parent && window.parent.currentLoggedUser === "OPENAPI") {
+        alert("⚠️ [테스트 계정 안내] OPENAPI 계정으로는 데이터가 저장되지 않습니다.");
+        return true;
+      }
+      return false;
+    }
+
     window.onload = function() { initTheme(); showUpdateNotice(); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications(); initAdminStudentSelect(); fetchGimcheonWeather(); renderTimetable(); renderChecklist(); loadSchoolMeal(); };
 
     function filterRecords() {
@@ -1564,7 +1722,7 @@
 
     for (let i = 11; i <= 100; i++) {
       bankAiQaList.push({
-        q: [\`질문\${i}\`, \`은행팁\${i}\`, \`안내\${i}\`, \`가이드\${i-10}\`],
+        q: [\`질문\${i}\`, \`은행팁\${i}\`],
         a: \`[4-4반 은행 스마트가이드 #\${i}] 궁금하신 실시간 정보(날씨, 급식, 학생별 저금액, 체크리스트, 예적금 한도 등)를 입력해주세요!\`
       });
     }
@@ -1685,7 +1843,10 @@
     }
 
     function getChecklistData() { return JSON.parse(localStorage.getItem('classBankChecklistCounts')) || {}; }
-    function saveChecklistData(data) { localStorage.setItem('classBankChecklistCounts', JSON.stringify(data)); }
+    function saveChecklistData(data) { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem('classBankChecklistCounts', JSON.stringify(data)); 
+    }
     function renderChecklist() {
         const container = document.getElementById('checkListContainer'); container.innerHTML = ''; const counts = getChecklistData();
         studentList.forEach(name => {
@@ -1696,8 +1857,8 @@
             container.appendChild(li);
         });
     }
-    function incrementChecklist(name) { const counts = getChecklistData(); counts[name] = (counts[name] || 0) + 1; saveChecklistData(counts); renderChecklist(); }
-    function decrementChecklist(event, name) { event.stopPropagation(); const counts = getChecklistData(); if ((counts[name] || 0) > 0) { counts[name] -= 1; saveChecklistData(counts); renderChecklist(); } }
+    function incrementChecklist(name) { if (checkOpenApiAccess()) return; const counts = getChecklistData(); counts[name] = (counts[name] || 0) + 1; saveChecklistData(counts); renderChecklist(); }
+    function decrementChecklist(event, name) { event.stopPropagation(); if (checkOpenApiAccess()) return; const counts = getChecklistData(); if ((counts[name] || 0) > 0) { counts[name] -= 1; saveChecklistData(counts); renderChecklist(); } }
     function renderTimetable() {
         const timetableData = { 1: ["1교시: 수학", "2교시: 영어", "3교시: 국어", "4교시: 국어", "5교시: 도덕"], 2: ["1교시: 수학", "2교시: 국어", "3교시: 창체", "4교시: 사회", "5교시: 미술"], 3: ["1교시: 수학", "2교시: 과학", "3교시: 체육", "4교시: 사회", "5교시: 음악"], 4: ["1교시: 과학", "2교시: 수학", "3교시: 영어", "4교시: 사회", "5교시: 창체"], 5: ["1교시: 국어", "2교시: 국어", "3교시: 체육", "4교시: 과학", "5교시: 음악"] };
         const dayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]; const now = new Date(); const dayIndex = now.getDay();
@@ -1761,14 +1922,30 @@
     function submitPasswordAuth() { if (document.getElementById('authPasswordInput').value === ADMIN_PASSWORD) { const cb = pendingAuthCallback; closePasswordModal(); if (cb) cb(); } else { alert('❌ 비밀번호가 올바르지 않습니다!'); } }
     function showUpdateNotice() { const modal = document.getElementById('updateNoticeModal'); if (modal) modal.style.display = 'flex'; }
     function closeUpdateNotice() { const modal = document.getElementById('updateNoticeModal'); if (modal) modal.style.display = 'none'; }
-    function saveRecords(records) { localStorage.setItem('classBankRecords', JSON.stringify(records)); }
+    
+    function saveRecords(records) { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem('classBankRecords', JSON.stringify(records)); 
+    }
     function getDeletedRecords() { return JSON.parse(localStorage.getItem('classBankDeletedRecords')) || []; }
-    function saveDeletedRecords(deletedRecords) { localStorage.setItem('classBankDeletedRecords', JSON.stringify(deletedRecords)); }
+    function saveDeletedRecords(deletedRecords) { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem('classBankDeletedRecords', JSON.stringify(deletedRecords)); 
+    }
     function getAdminSettings() { return JSON.parse(localStorage.getItem('classBankAdminSettings')) || {}; }
-    function saveAdminSettings(settings) { localStorage.setItem('classBankAdminSettings', JSON.stringify(settings)); }
+    function saveAdminSettings(settings) { 
+      if (checkOpenApiAccess()) return;
+      localStorage.setItem('classBankAdminSettings', JSON.stringify(settings)); 
+    }
     function getDismissedNotifications() { return JSON.parse(localStorage.getItem('dismissedNotifications')) || []; }
-    function dismissNotification(name) { const dismissed = getDismissedNotifications(); if (!dismissed.includes(name)) { dismissed.push(name); localStorage.setItem('dismissedNotifications', JSON.stringify(dismissed)); } updateNotifications(); }
+    function dismissNotification(name) { 
+      if (checkOpenApiAccess()) return;
+      const dismissed = getDismissedNotifications(); 
+      if (!dismissed.includes(name)) { dismissed.push(name); localStorage.setItem('dismissedNotifications', JSON.stringify(dismissed)); } 
+      updateNotifications(); 
+    }
     function getWeekKey(dateObj) { const d = new Date(dateObj); d.setHours(0, 0, 0, 0); const day = d.getDay(); const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1); const monday = new Date(d.setDate(diffToMon)); return monday.toISOString().substring(0, 10); }
+    
     function loadRecords() {
         const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const tbody = document.getElementById('recordList'); tbody.innerHTML = '';
         records.forEach((item, index) => { const formattedAmount = Number(item.amount).toLocaleString() + '원'; const newRow = document.createElement('tr'); newRow.innerHTML = \`<td>\${item.date}</td><td>\${item.name}</td><td>\${item.type}</td><td><strong>\${formattedAmount}</strong></td><td><button class="delete-btn" onclick="deleteRecord(\${index})">삭제</button></td>\`; tbody.appendChild(newRow); });
@@ -1819,6 +1996,8 @@
         });
     }
     function addRecord() {
+        if (checkOpenApiAccess()) return;
+
         const dateInput = document.getElementById('date').value; const name = document.getElementById('name').value; const amount = Number(document.getElementById('amount').value); const type = document.getElementById('type').value;
         if (!dateInput || !name || !amount || amount <= 0) { alert('날짜, 이름, 올바른 금액을 선택/입력해 주세요!'); return; }
         const isSuperAdmin = (name === SUPER_ADMIN_NAME); const adminSettings = getAdminSettings(); const userSetting = adminSettings[name] || {};
@@ -1838,6 +2017,7 @@
         document.getElementById('amount').value = ''; document.getElementById('name').value = '';
     }
     function deleteRecord(index) {
+        if (checkOpenApiAccess()) return;
         if (confirm('이 기록을 삭제하시겠습니까?')) {
             const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const deleted = records.splice(index, 1)[0];
             const deletedRecords = getDeletedRecords(); deletedRecords.unshift(deleted); saveDeletedRecords(deletedRecords);
@@ -1845,6 +2025,7 @@
         }
     }
     function clearAllRecords() {
+        if (checkOpenApiAccess()) return;
         promptPasswordAuth('🔑 전체 삭제 비밀번호 입력', function() {
             if (confirm('모든 통장 기록을 지우시겠습니까?')) {
                 const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; const deletedRecords = getDeletedRecords();
@@ -1864,6 +2045,7 @@
         });
     }
     function restoreRecord(index) {
+        if (checkOpenApiAccess()) return;
         const deletedRecords = getDeletedRecords(); const restoredItem = deletedRecords.splice(index, 1)[0]; saveDeletedRecords(deletedRecords);
         const records = JSON.parse(localStorage.getItem('classBankRecords')) || []; records.unshift(restoredItem); saveRecords(records);
         renderDeletedRecords(); loadRecords(); updateStudentStatusTable(); updateLeaderboards(); updateNotifications();
@@ -1897,11 +2079,13 @@
         infoDiv.innerHTML = \`<strong>\${name}</strong> 학생 상태: \${depStatus} \${savStatus} \${limitStatus}\`;
     }
     function toggleStudentSetting(key, status) {
+        if (checkOpenApiAccess()) return;
         const name = document.getElementById('adminStudentSelect').value; if (!name) { alert('학생을 먼저 선택해 주세요!'); return; }
         if (name === SUPER_ADMIN_NAME) { alert('👑 최고관리자는 제한을 설정할 수 없습니다.'); return; }
         const adminSettings = getAdminSettings(); if (!adminSettings[name]) adminSettings[name] = {}; adminSettings[name][key] = status; saveAdminSettings(adminSettings); renderStudentAdminStatus(); alert(\`'\${name}' 학생 설정 업데이트 완료.\`);
     }
     function modifyStudentBalance(action) {
+        if (checkOpenApiAccess()) return;
         const name = document.getElementById('adminStudentSelect').value; const adminDate = document.getElementById('adminDate').value; const type = document.getElementById('editType').value; const amount = Number(document.getElementById('editAmount').value);
         if (!name || !adminDate || !amount || amount <= 0) { alert('학생, 날짜, 올바른 금액을 입력해 주세요!'); return; }
         const records = JSON.parse(localStorage.getItem('classBankRecords')) || [];
