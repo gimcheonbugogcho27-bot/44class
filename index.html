@@ -123,6 +123,32 @@
   .h-note { font-size: 14px; padding: 6px 2px; }
   .home button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+  /* 홈 - 자산 추가 카드 */
+  .add-wrap { max-width: 1100px; margin: 0 auto 16px; }
+  .add-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: end; }
+  .add-form label { display: block; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.85); margin-bottom: 4px; }
+  .add-form select, .add-form input {
+    width: 100%; padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 14px; color: #fff; outline: none;
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.45);
+  }
+  .add-form select option { background: #1e3a5f; color: #fff; }
+  .add-form input::placeholder { color: rgba(255,255,255,.6); }
+  .add-form input:focus, .add-form select:focus { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
+  .add-form input[type="password"] { letter-spacing: 4px; }
+  .add-btn { padding: 11px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.4); font: inherit; font-size: 14px; font-weight: 800; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 0 12px rgba(16,185,129,.35); }
+  .add-btn:hover { transform: translateY(-1px); }
+  .ex-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0 8px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); }
+  .ex-clear { padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.15); color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+  .ex-clear:hover { background: rgba(255,255,255,.3); }
+  .ex-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ex-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.14); color: #fff; font: inherit; font-size: 13px; cursor: pointer; transition: background .15s; }
+  .ex-chip:hover { background: rgba(255,255,255,.28); }
+  .ex-chip.off { background: rgba(239,68,68,.55); border-color: #fca5a5; text-decoration: line-through; }
+  .add-msg { min-height: 20px; margin-top: 10px; font-size: 13px; font-weight: 700; }
+  .add-msg.ok { color: #a7f3d0; }
+  .add-msg.err { color: #fecaca; }
+
 
   .tab[data-id="dance"] { --accent: #f472b6; }
   .dance {
@@ -215,6 +241,21 @@
       <div class="hcard span5">
         <div class="h-head"><span>📅 오늘의 시간표</span></div>
         <div id="homeTimetable"></div>
+      </div>
+    </div>
+    <div class="add-wrap">
+      <div class="hcard">
+        <div class="h-head"><span>➕ 전체 학생 자산 추가</span></div>
+        <div class="add-form">
+          <div><label for="addCategory">항목</label>
+            <select id="addCategory"><option>월급</option><option>QUIZ</option><option>미션</option><option>선생님보너스</option></select></div>
+          <div><label for="addAmount">금액(원)</label><input type="number" id="addAmount" min="1" step="1" inputmode="numeric" placeholder="예: 1000" onkeyup="if(event.key==='Enter') addAsset()"></div>
+          <div><label for="addPw">비밀번호</label><input type="password" id="addPw" maxlength="20" autocomplete="off" placeholder="••••••" onkeyup="if(event.key==='Enter') addAsset()"></div>
+          <div><button class="add-btn" style="width:100%" onclick="addAsset()">자산 추가</button></div>
+        </div>
+        <div class="ex-head"><span>🚫 제외할 학생 (누르면 제외, 다시 누르면 포함)</span><button type="button" class="ex-clear" onclick="clearExcluded()">제외 모두 해제</button></div>
+        <div class="ex-chips" id="exChips"></div>
+        <div class="add-msg" id="addMsg" role="status"></div>
       </div>
     </div>
     <div class="rank-grid">
@@ -603,9 +644,68 @@
     document.getElementById('homeQuiz').innerHTML = rankHTML(Object.keys(quiz).map(n => [n, Number(quiz[n] && quiz[n].score) || 0]), '점');
   }
 
+  /* ===== 홈: 모든 학생 자산 추가 ===== */
+  const ASSET_ADD_PASSWORD = '135709';
+  const ASSET_KEY = 'class4_4_assets_data';
+  const ADD_STUDENTS = ['김예은','김윤솔','김재은','나헤지','박솔아','박주아','박준희','송지아','신다원','전소현','전시은','주예진',
+    '김규담','김성현','김지유ADMIN님','김혜준','박서한','박우준','신유찬','안재현','이서빈','이승운','이시우','장재훈','전지훈','정유재'];
+
+  const excluded = new Set();
+
+  function initAddForm() {
+    const box = document.getElementById('exChips');
+    if (box.children.length) return;
+    ADD_STUDENTS.forEach(n => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ex-chip';
+      b.textContent = n;
+      b.setAttribute('aria-pressed', 'false');
+      b.onclick = () => {
+        const off = !excluded.has(n);
+        if (off) excluded.add(n); else excluded.delete(n);
+        b.classList.toggle('off', off);
+        b.setAttribute('aria-pressed', off ? 'true' : 'false');
+      };
+      box.appendChild(b);
+    });
+  }
+
+  function clearExcluded() {
+    excluded.clear();
+    document.querySelectorAll('#exChips .ex-chip').forEach(b => { b.classList.remove('off'); b.setAttribute('aria-pressed', 'false'); });
+  }
+
+  function addMsg(text, ok) {
+    const m = document.getElementById('addMsg');
+    m.textContent = text;
+    m.className = 'add-msg ' + (ok ? 'ok' : 'err');
+  }
+
+  function addAsset() {
+    const cat = document.getElementById('addCategory').value;
+    const amount = parseInt(document.getElementById('addAmount').value, 10);
+    const pwEl = document.getElementById('addPw');
+    if (isNaN(amount) || amount <= 0) { addMsg('❌ 금액을 1원 이상으로 입력해 주세요.', false); return; }
+    const targets = ADD_STUDENTS.filter(n => !excluded.has(n));
+    if (!targets.length) { addMsg('❌ 추가할 학생이 없어요. 제외를 해제해 주세요.', false); return; }
+    if (pwEl.value !== ASSET_ADD_PASSWORD) { addMsg('❌ 비밀번호가 올바르지 않습니다!', false); pwEl.value = ''; pwEl.focus(); return; }
+    const assets = readJSON(ASSET_KEY, {});
+    ADD_STUDENTS.forEach(n => { assets[n] = Number(assets[n]) || 0; });
+    targets.forEach(n => { assets[n] += amount; });
+    try { localStorage.setItem(ASSET_KEY, JSON.stringify(assets)); }
+    catch (e) { addMsg('❌ 저장하지 못했어요. 브라우저 저장소를 확인해 주세요.', false); return; }
+    const exTxt = excluded.size ? ' (제외 ' + excluded.size + '명: ' + [...excluded].join(', ') + ')' : '';
+    addMsg('✅ ' + cat + ' ' + amount.toLocaleString() + '원을 ' + targets.length + '명에게 추가했어요!' + exTxt, true);
+    document.getElementById('addAmount').value = '';
+    pwEl.value = '';
+    renderRankings();
+  }
+
   function renderHomeData() { renderMeal(); renderTimetable(); renderRankings(); }
 
   function renderHome() {
+    initAddForm();
     if (!homeStarted) {
       homeStarted = true;
       tickClock();
