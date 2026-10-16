@@ -77,6 +77,52 @@
   .btn-guest { color: #fff; border: 1px solid #34d399; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
   .guest-note { margin-top: 8px; font-size: 12px; color: #94a3b8; }
 
+  .tab[data-id="home"] { --accent: #fbbf24; }
+
+  /* 홈 대시보드 (부곡초 퀴즈 리그전 글래스모피즘 스타일) */
+  .home {
+    position: absolute; inset: 0; display: none; overflow-y: auto; padding: 18px 16px 28px; color: #fff;
+    font-family: 'Malgun Gothic', '맑은 고딕', 'Pretendard', -apple-system, sans-serif;
+    background:
+      radial-gradient(circle 260px at 6% 4%, rgba(52, 211, 153, 0.8), rgba(52, 211, 153, 0) 70%),
+      radial-gradient(circle 300px at 96% 96%, rgba(34, 211, 238, 0.75), rgba(34, 211, 238, 0) 70%),
+      radial-gradient(circle 220px at 62% 42%, rgba(244, 114, 182, 0.5), rgba(244, 114, 182, 0) 70%),
+      linear-gradient(135deg, #0f766e 0%, #1e3a8a 55%, #6d28d9 100%);
+  }
+  .home.active { display: block; }
+  .home-grid, .rank-grid { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
+  .home-grid { grid-template-columns: repeat(12, 1fr); margin-bottom: 16px; }
+  .rank-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .hcard {
+    min-width: 0; padding: 18px; border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+  .span7 { grid-column: span 7; }
+  .span5 { grid-column: span 5; }
+  @media (max-width: 800px) { .span7, .span5 { grid-column: span 12; } }
+  .h-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 15px; font-weight: 700; }
+  .h-refresh { background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.35); color: #fff; border-radius: 8px; padding: 3px 8px; cursor: pointer; font-size: 13px; }
+  .h-refresh:hover { background: rgba(255, 255, 255, 0.32); }
+  .h-time { font-size: clamp(34px, 7vw, 58px); font-weight: 800; line-height: 1.1; letter-spacing: 1px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+  .h-date { margin-top: 8px; font-size: 16px; color: rgba(255, 255, 255, 0.9); }
+  .h-weather { display: flex; align-items: center; gap: 14px; }
+  .h-weather .ico { font-size: 46px; line-height: 1; }
+  .h-weather .temp { font-size: 34px; font-weight: 800; line-height: 1.1; }
+  .h-sub { font-size: 13px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
+  .h-list { list-style: none; margin: 0; padding: 0; }
+  .h-list li { padding: 6px 2px; border-bottom: 1px dashed rgba(255, 255, 255, 0.25); font-size: 14px; line-height: 1.4; }
+  .h-list li:last-child { border-bottom: none; }
+  .h-tt li { display: flex; gap: 10px; }
+  .h-tt li b { min-width: 52px; color: #fde68a; }
+  .h-rank { display: flex; justify-content: space-between; gap: 8px; }
+  .h-rank strong { white-space: nowrap; color: #fde68a; }
+  .h-empty { text-align: center; color: rgba(255, 255, 255, 0.75); padding: 14px 0 !important; }
+  .h-note { font-size: 14px; padding: 6px 2px; }
+  .home button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
   .loading {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
     color: #94a3b8; font-size: 14px; pointer-events: none;
@@ -87,6 +133,7 @@
 <body>
 
 <div class="tabbar" role="tablist" aria-label="4-4반 프로그램">
+  <button class="tab" role="tab" data-id="home"  id="tab-home"  aria-controls="frame-home"  aria-selected="false"><span class="dot"></span>🏠 홈</button>
   <button class="tab" role="tab" data-id="bank"  id="tab-bank"  aria-controls="frame-bank"  aria-selected="false"><span class="dot"></span>🏦 은행 관리</button>
   <button class="tab" role="tab" data-id="asset" id="tab-asset" aria-controls="frame-asset" aria-selected="false"><span class="dot"></span>💰 자산 관리</button>
   <button class="tab" role="tab" data-id="quiz"  id="tab-quiz"  aria-controls="frame-quiz"  aria-selected="false"><span class="dot"></span>🎯 부곡초 퀴즈</button>
@@ -108,6 +155,33 @@
 </div>
 
 <div class="stage">
+  <section class="home" id="frame-home" role="tabpanel" aria-labelledby="tab-home">
+    <div class="home-grid">
+      <div class="hcard span7">
+        <div class="h-head"><span>🕒 지금 시각</span></div>
+        <div class="h-time" id="homeTime">--:--:--</div>
+        <div class="h-date" id="homeDate"></div>
+      </div>
+      <div class="hcard span5">
+        <div class="h-head"><span>🌤️ 오늘의 김천 날씨</span><button class="h-refresh" onclick="loadWeather()" aria-label="날씨 새로고침">🔄</button></div>
+        <div id="homeWeather" class="h-note">날씨 정보를 불러오는 중...</div>
+      </div>
+      <div class="hcard span7">
+        <div class="h-head"><span>🍱 오늘의 급식</span></div>
+        <div id="homeMeal"></div>
+      </div>
+      <div class="hcard span5">
+        <div class="h-head"><span>📅 오늘의 시간표</span></div>
+        <div id="homeTimetable"></div>
+      </div>
+    </div>
+    <div class="rank-grid">
+      <div class="hcard"><div class="h-head"><span>💰 자산 랭킹</span></div><ol class="h-list" id="homeAsset"></ol></div>
+      <div class="hcard"><div class="h-head"><span>🌟 적금 랭킹</span></div><ol class="h-list" id="homeSavings"></ol></div>
+      <div class="hcard"><div class="h-head"><span>🪐 예금 랭킹</span></div><ol class="h-list" id="homeDeposit"></ol></div>
+      <div class="hcard"><div class="h-head"><span>🏆 퀴즈 랭킹</span></div><ol class="h-list" id="homeQuiz"></ol></div>
+    </div>
+  </section>
   <iframe id="frame-bank"  title="4-4반 은행 관리 프로그램" role="tabpanel" aria-labelledby="tab-bank"></iframe>
   <iframe id="frame-asset" title="4-4반 자산관리 프로그램" role="tabpanel" aria-labelledby="tab-asset"></iframe>
   <iframe id="frame-quiz"  title="부곡초 퀴즈 리그전 & 랭킹판" role="tabpanel" aria-labelledby="tab-quiz"></iframe>
@@ -122,7 +196,7 @@
     quiz:  "<!DOCTYPE html>\n<html lang=\"ko\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>부곡초 퀴즈 리그전 & 랭킹판<\/title>\n    <\!-- Tailwind CSS 로드 -->\n    <script src=\"https://cdn.tailwindcss.com\"><\/script>\n    <\!-- Google Font Inter / Pretendard -->\n    <link href=\"https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n    <style>\n        body {\n            font-family: 'Pretendard', sans-serif;\n            background: linear-gradient(135deg, #0f766e 0%, #1e3a8a 55%, #6d28d9 100%);\n            background-attachment: fixed;\n            min-height: 100vh;\n            position: relative;\n            overflow-x: hidden;\n        }\n        /* 유리 뒤에서 비치는 색 덩어리 */\n        .blob { position: fixed; border-radius: 50%; filter: blur(70px); opacity: .65; pointer-events: none; z-index: 0; }\n        .blob.b1 { width: 340px; height: 340px; background: #34d399; top: -80px; left: -60px; }\n        .blob.b2 { width: 380px; height: 380px; background: #22d3ee; bottom: -120px; right: -80px; }\n        .blob.b3 { width: 280px; height: 280px; background: #f472b6; top: 35%; left: 55%; opacity: .45; }\n\n        /* 글래스모피즘 공통 클래스 */\n        .glass-panel {\n            background: rgba(255, 255, 255, 0.12);\n            backdrop-filter: blur(24px) saturate(160%);\n            -webkit-backdrop-filter: blur(24px) saturate(160%);\n            border: 1px solid rgba(255, 255, 255, 0.35);\n            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);\n        }\n        .glass-card {\n            background: rgba(255, 255, 255, 0.10);\n            backdrop-filter: blur(14px) saturate(150%);\n            -webkit-backdrop-filter: blur(14px) saturate(150%);\n            border: 1px solid rgba(255, 255, 255, 0.28);\n            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);\n        }\n        .glass-input {\n            background: rgba(255, 255, 255, 0.16);\n            backdrop-filter: blur(8px);\n            -webkit-backdrop-filter: blur(8px);\n            border: 1px solid rgba(255, 255, 255, 0.45);\n            color: #ffffff;\n        }\n        .glass-input::placeholder { color: rgba(255, 255, 255, 0.6); }\n        .glass-input option { background: #1e3a5f; color: #ffffff; }\n        .reset-pw { letter-spacing: 6px; text-align: center; }\n    <\/style>\n<\/head>\n<body class=\"text-white p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center\">\n\n    <div class=\"blob b1\"><\/div><div class=\"blob b2\"><\/div><div class=\"blob b3\"><\/div>\n\n    <div class=\"max-w-4xl w-full mx-auto space-y-6 relative z-10\">\n        \n        <\!-- 상단 헤더 -->\n        <header class=\"glass-panel rounded-3xl p-6 text-center text-white shadow-xl relative overflow-hidden\">\n            <div class=\"absolute -right-10 -top-10 w-40 h-40 bg-white/20 rounded-full blur-2xl pointer-events-none\"><\/div>\n            <h1 class=\"text-2xl sm:text-4xl font-extrabold tracking-tight drop-shadow-md\">🏫 김천부곡초등학교 퀴즈 리그전<\/h1>\n            <p class=\"text-sm sm:text-base text-white/90 mt-2\">50초 동안 부곡초 퀴즈를 풀고 랭킹 1위에 도전하세요!<\/p>\n        <\/header>\n\n        <\!-- 메인 콘텐츠 영역 (그리드 레이아웃: 왼쪽 퀴즈, 오른쪽 랭킹판) -->\n        <main class=\"grid grid-cols-1 lg:grid-cols-3 gap-6\">\n            \n            <\!-- 왼쪽: 퀴즈 참여 및 플레이 영역 -->\n            <div class=\"lg:col-span-2 glass-panel rounded-3xl p-6 text-white space-y-5\">\n                <div class=\"flex justify-between items-center\">\n                    <h2 class=\"text-xl font-bold flex items-center gap-2\">🎯 퀴즈 챌린지 룸<\/h2>\n                    <span id=\"current-player-tag\" class=\"text-xs bg-white/30 px-3 py-1 rounded-full font-semibold hidden\">참가중: <span id=\"tag-name\"><\/span><\/span>\n                <\/div>\n                \n                <\!-- 1. 학생 선택 및 시작 화면 -->\n                <div id=\"quiz-setup\" class=\"space-y-4\">\n                    <div>\n                        <label class=\"block text-sm font-medium mb-1.5 text-white/90\">참가자 선택<\/label>\n                        <select id=\"student-select\" class=\"w-full glass-input rounded-xl p-3.5 font-medium focus:outline-none focus:ring-2 focus:ring-white\">\n                            <option value=\"\" disabled selected>-- 본인의 이름을 선택하세요 --<\/option>\n                            <\!-- JS로 동적 생성 -->\n                        <\/select>\n                    <\/div>\n\n                    <div class=\"glass-card p-4 rounded-2xl text-xs sm:text-sm space-y-1.5 text-white/95\">\n                        <p class=\"font-bold text-yellow-100\">📌 규칙 안내<\/p>\n                        <p>⏱️ 제한 시간: <strong>50초<\/strong><\/p>\n                        <p>📝 일반 <strong>20문제<\/strong> / 심화 <strong>40문제<\/strong> (5지선다)<\/p>\n                        <p>✨ 정답 점수: 일반 문제 <strong>+10점<\/strong> / 심화 문제 <strong>+15점<\/strong><\/p>\n                        <p>📈 점수는 문제를 풀 때마다 랭킹에 <strong>누적<\/strong>돼요<\/p>\n                    <\/div>\n\n                    <div class=\"flex flex-col sm:flex-row gap-3\">\n                        <button onclick=\"startQuiz('basic')\" class=\"flex-1 py-4 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg transition transform active:scale-98 text-base tracking-wide border border-white/30\">\n                            🚀 문제 스타트 (50초 시작!)\n                        <\/button>\n                        <button onclick=\"startQuiz('advanced')\" class=\"flex-1 py-4 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition transform active:scale-98 text-base tracking-wide border border-white/30\">\n                            🔥 심화문제 도전하기 (+15점)\n                        <\/button>\n                    <\/div>\n                <\/div>\n\n                <\!-- 2. 퀴즈 진행 화면 (기본 숨김) -->\n                <div id=\"quiz-play\" class=\"hidden space-y-4\">\n                    <div class=\"flex justify-between items-center bg-white/20 px-4 py-2.5 rounded-xl border border-white/20\">\n                        <span id=\"quiz-progress\" class=\"font-semibold text-sm\">문제 1 / 20<\/span>\n                        <span id=\"timer-display\" class=\"font-bold text-lg text-yellow-200 animate-pulse\">⏳ 50초<\/span>\n                    <\/div>\n\n                    <div class=\"glass-card p-5 rounded-2xl space-y-5\">\n                        <h3 id=\"question-text\" class=\"text-lg sm:text-xl font-semibold leading-relaxed text-white\">문제 내용이 여기에 표시됩니다.<\/h3>\n                        <div id=\"options-container\" class=\"grid grid-cols-1 gap-2.5\">\n                            <\!-- 객관식 보기 5개 동적 생성 -->\n                        <\/div>\n                    <\/div>\n                <\/div>\n\n                <\!-- 3. 퀴즈 결과 화면 (기본 숨김) -->\n                <div id=\"quiz-result\" class=\"hidden text-center space-y-5 py-6\">\n                    <div class=\"w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner\">🏆<\/div>\n                    <h3 class=\"text-2xl font-bold\">퀴즈 리그전 완료!<\/h3>\n                    <div id=\"result-score-text\" class=\"text-lg bg-white/15 p-4 rounded-2xl border border-white/20\">점수 집계 중...<\/div>\n                    <button onclick=\"resetQuizView()\" class=\"px-8 py-3 bg-white text-emerald-700 font-bold rounded-xl shadow-lg hover:bg-opacity-95 transition transform active:scale-98\">\n                        🔄 다시 도전하기 / 홈으로\n                    <\/button>\n                <\/div>\n            <\/div>\n\n            <\!-- 오른쪽: 실시간 랭킹판 -->\n            <div class=\"glass-panel rounded-3xl p-6 text-white space-y-4 flex flex-col justify-between\">\n                <div>\n                    <h2 class=\"text-xl font-bold flex items-center gap-2 mb-4\">🏆 실시간 랭킹판<\/h2>\n                    <div class=\"overflow-x-auto max-h-[380px] overflow-y-auto pr-1\">\n                        <table class=\"w-full text-left border-collapse\">\n                            <thead>\n                                <tr class=\"border-b border-white/30 text-xs text-white/80\">\n                                    <th class=\"py-2.5 px-2\">순위<\/th>\n                                    <th class=\"py-2.5 px-2\">이름<\/th>\n                                    <th class=\"py-2.5 px-2 text-center\">정답<\/th>\n                                    <th class=\"py-2.5 px-2 text-right\">누적 점수<\/th>\n                                <\/tr>\n                            <\/thead>\n                            <tbody id=\"ranking-tbody\" class=\"text-sm\">\n                                <\!-- JS로 랭킹 렌더링 -->\n                            <\/tbody>\n                        <\/table>\n                    <\/div>\n                <\/div>\n                <button onclick=\"clearRanking()\" class=\"w-full py-2.5 bg-rose-500/40 hover:bg-rose-500/60 text-white text-xs font-semibold rounded-xl transition border border-rose-300/30\">\n                    🗑️ 랭킹 기록 초기화\n                <\/button>\n            <\/div>\n\n        <\/main>\n        \n        <\!-- 랭킹 초기화 비밀번호 모달 (입력값 마스킹) -->\n        <div id=\"reset-modal\" class=\"fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50\">\n            <div class=\"glass-panel max-w-sm w-full p-6 rounded-3xl text-center space-y-4 text-white\">\n                <h3 class=\"text-lg font-bold\">🔑 랭킹 초기화 비밀번호<\/h3>\n                <p class=\"text-sm text-white/85\">비밀번호를 입력해야 랭킹 기록을 초기화할 수 있어요.<\/p>\n                <input type=\"password\" id=\"reset-pw\" class=\"glass-input reset-pw w-full rounded-xl p-3 text-xl focus:outline-none focus:ring-2 focus:ring-white\" placeholder=\"••••••••••\" maxlength=\"20\" autocomplete=\"off\" aria-label=\"비밀번호\" onkeyup=\"if(event.key==='Enter') submitResetPassword()\">\n                <p id=\"reset-error\" class=\"text-sm text-rose-200 min-h-[1.25rem]\" role=\"alert\"><\/p>\n                <div class=\"flex gap-2\">\n                    <button onclick=\"submitResetPassword()\" class=\"flex-1 py-2.5 bg-emerald-500/70 hover:bg-emerald-500 text-white font-semibold rounded-xl border border-white/30 transition\">확인<\/button>\n                    <button onclick=\"closeResetModal()\" class=\"flex-1 py-2.5 bg-rose-500/50 hover:bg-rose-500/70 text-white font-semibold rounded-xl border border-white/30 transition\">취소<\/button>\n                <\/div>\n            <\/div>\n        <\/div>\n\n        <\!-- 커스텀 알림 메시지 모달 -->\n        <div id=\"custom-modal\" class=\"fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50\">\n            <div class=\"glass-panel max-w-sm w-full p-6 rounded-3xl text-center space-y-4 text-white\">\n                <h3 id=\"modal-title\" class=\"text-lg font-bold\">알림<\/h3>\n                <p id=\"modal-message\" class=\"text-sm text-white/85\">메시지 내용<\/p>\n                <button onclick=\"closeModal()\" class=\"w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow transition\">\n                    확인\n                <\/button>\n            <\/div>\n        <\/div>\n\n    <\/div>\n\n    <script>\n        // --- 1. 부곡초 20가지 퀴즈 및 객관식 보기 데이터 정의 ---\n        const quizBasic = [\n            { question: \"김천부곡초등학교의 개교일(설립일)은 언제인가요?\", answer: \"2001년 3월 1일\", decoys: [\"1998년 3월 1일\", \"2005년 5월 5일\", \"2000년 1월 1일\", \"2003년 3월 1일\"] },\n            { question: \"김천부곡초등학교의 도로명 주소는 어디인가요?\", answer: \"경상북도 김천시 부곡맛고을1길 147\", decoys: [\"경상북도 김천시 대학로 100\", \"경상북도 김천시 시청로 50\", \"경상북도 김천시 중앙로 12\", \"경상북도 김천시 혁신로 200\"] },\n            { question: \"김천부곡초등학교의 설립 유형은 무엇인가요?\", answer: \"공립 초등학교\", decoys: [\"사립 초등학교\", \"국립 초등학교\", \"공사립 통합 초등학교\", \"대안 초등학교\"] },\n            { question: \"김천부곡초등학교의 교훈은 무엇인가요?\", answer: \"삶의 힘을 키우는 행복한 인재 교육\", decoys: [\"바르고 슬기롭게 튼튼하게\", \"꿈을 키우는 창의적인 어린이\", \"진실하고 성실하게 살자\", \"미래를 여는 글로벌 인재\"] },\n            { question: \"김천부곡초등학교의 교화(학교의 꽃)는 무엇인가요?\", answer: \"장미\", decoys: [\"개나리\", \"무궁화\", \"진달래\", \"백합\"] },\n            { question: \"김천부곡초등학교의 교목(학교의 나무)은 무엇인가요?\", answer: \"주목\", decoys: [\"소나무\", \"은행나무\", \"느티나무\", \"향나무\"] },\n            { question: \"김천부곡초등학교 교표 디자인에 활용된 초성 세 가지는 무엇인가요?\", answer: \"ㅂ, ㄱ, ㅊ\", decoys: [\"ㄱ, ㅂ, ㅅ\", \"ㅂ, ㄷ, ㅊ\", \"ㅁ, ㄱ, ㅊ\", \"ㅂ, ㄱ, ㅁ\"] },\n            { question: \"김천부곡초등학교 교표 삼색 중 '빨간색'이 상징하는 것은 무엇인가요?\", answer: \"사랑\", decoys: [\"열정\", \"희망\", \"용기\", \"평화\"] },\n            { question: \"김천부곡초등학교 교표 삼색 중 '녹색'이 상징하는 것은 무엇인가요?\", answer: \"건강, 진리탐구\", decoys: [\"자연, 평화\", \"성실, 협동\", \"지혜, 탐구\", \"생명, 사랑\"] },\n            { question: \"김천부곡초등학교 교표 삼색 중 '파란색'이 상징하는 것은 무엇인가요?\", answer: \"창조\", decoys: [\"광활함\", \"바다\", \"지혜\", \"미래\"] },\n            { question: \"김천부곡초등학교 교가를 작사한 사람은 누구인가요?\", answer: \"노중석\", decoys: [\"김소월\", \"정지용\", \"윤동주\", \"박목월\"] },\n            { question: \"김천부곡초등학교 교가를 작곡한 사람은 누구인가요?\", answer: \"이안삼\", decoys: [\"홍난파\", \"현제명\", \"안익태\", \"채동선\"] },\n            { question: \"김천부곡초등학교를 관할하는 교육지원청은 어디인가요?\", answer: \"경상북도김천교육지원청\", decoys: [\"경상북도구미교육지원청\", \"경상북도상주교육지원청\", \"대구지방교육청\", \"김천시청 교육지원과\"] },\n            { question: \"학교 건물 1층에 위치한 대표적인 주요 시설들을 두 가지 이상 쓰시오.\", answer: \"급식실, 도서관, 교무실\", decoys: [\"수영장, 체육관, 음악실\", \"컴퓨터실, 영어체험실, 방송실\", \"과학실, 미술실, 보건실\", \"교장실, 행정실, 강당\"] },\n            { question: \"김천부곡초등학교의 체육관이 위치하고 있는 층수는 어디인가요?\", answer: \"2층\", decoys: [\"1층\", \"3층\", \"4층\", \"지하 1층\"] },\n            { question: \"컴퓨터실이 위치하고 있는 건물 층수는 몇 층인가요?\", answer: \"4층\", decoys: [\"1층\", \"2층\", \"3층\", \"5층\"] },\n            { question: \"김천부곡초등학교에 운영되었거나 운영 중인 대표 운동부는 무엇인가요?\", answer: \"배드민턴부, 수영부, 축구부\", decoys: [\"야구부, 농구부\", \"태권도부, 육상부\", \"탁구부, 피구부\", \"검도부, 정구부\"] },\n            { question: \"김천부곡초등학교에서 비교적 길게 주어지는 2교시 쉬는 시간의 길이는 몇 분인가요?\", answer: \"20분\", decoys: [\"10분\", \"15분\", \"30분\", \"5분\"] },\n            { question: \"김천부곡초등학교가 신설되는 계기가 되었던, 1994년에 지정된 개발 지구는 무슨 지구인가요?\", answer: \"부곡동 일대 택지개발 사업지구\", decoys: [\"혁신도시 개발지구\", \"신음동 택지개발지구\", \"교동 토지구획정리지구\", \"대신동 주거환경개선지구\"] },\n            { question: \"김천부곡초등학교의 공식 학교 홈페이지 대표 도메인 주소는 무엇인가요?\", answer: \"school.gyo6.net/gimcheonbugog\", decoys: [\"school.keris.or.kr/bugok\", \"www.gimcheon-bugok.es.kr\", \"bugok.gb.edu.kr\", \"school.gyeongbuk.kr/bg\"] }\n        ];\n\n        // 심화 문제 (40문제, 보기 순서 고정, 문제당 15점)\n        const quizAdvanced = [\n    {\n        \"question\": \"김천부곡초등학교의 개교 연월일은 언제인가?\",\n        \"options\": [\n            \"1998년 3월 1일\",\n            \"2001년 3월 1일\",\n            \"2003년 3월 1일\",\n            \"2005년 3월 1일\",\n            \"2007년 3월 1일\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교가 위치한 행정구역은 어디인가?\",\n        \"options\": [\n            \"경상북도 구미시\",\n            \"경상북도 상주시\",\n            \"경상북도 김천시\",\n            \"대구광역시 북구\",\n            \"경상북도 영천시\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교의 학교 교훈은 무엇인가?\",\n        \"options\": [\n            \"굳세고 부지런하며 슬기롭게\",\n            \"꿈을 키우는 따뜻한 어린이\",\n            \"바르게, 새롭게, 아름답게\",\n            \"삶의 힘을 키우는 행복한 인재 교육\",\n            \"씩씩하고 참되며 예절 바른 어린이\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교의 설립 구분은 무엇인가?\",\n        \"options\": [\n            \"국립\",\n            \"공립\",\n            \"사립\",\n            \"사립(대안)\",\n            \"공사립 법인\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교가 위치한 도로명 주소의 상세 도로명은 무엇인가?\",\n        \"options\": [\n            \"부곡맛고을1길\",\n            \"대학로\",\n            \"시청로\",\n            \"혁신로\",\n            \"신음새동네길\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교의 제1회 졸업식은 언제 거행되었는가?\",\n        \"options\": [\n            \"2001년 2월 19일\",\n            \"2002년 2월 19일\",\n            \"2003년 2월 19일\",\n            \"2004년 2월 19일\",\n            \"2005년 2월 19일\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"다음 중 김천부곡초등학교 교표(마크)의 삼색 중 '빨간색'이 뜻하는 의미는 무엇인가?\",\n        \"options\": [\n            \"진리탐구\",\n            \"건강\",\n            \"창조\",\n            \"사랑\",\n            \"협동\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교 교표에서 '녹색'이 상징하는 두 가지 의미로 바르게 묶인 것은?\",\n        \"options\": [\n            \"사랑 - 건강\",\n            \"건강 - 진리탐구\",\n            \"창조 - 사랑\",\n            \"진리탐구 - 창조\",\n            \"협동 - 우애\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교 교표에서 '파란색'이 뜻하는 의미는 무엇인가?\",\n        \"options\": [\n            \"사랑\",\n            \"건강\",\n            \"진리탐구\",\n            \"창조\",\n            \"평화\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교의 교화(학교를 상징하는 꽃)는 무엇인가?\",\n        \"options\": [\n            \"개나리\",\n            \"진달래\",\n            \"무궁화\",\n            \"장미\",\n            \"국화\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교 교화인 '장미'가 상징하는 어린이의 모습으로 가장 적절한 것은?\",\n        \"options\": [\n            \"높고 푸른 기상을 지닌 어린이\",\n            \"아름답고 그윽한 향기와 우아한 품격을 가지며 밝고 구김살없이 자라는 어린이\",\n            \"늘 변함없이 푸르른 기상을 지닌 어린이\",\n            \"협동하고 봉사하는 어린이\",\n            \"진취적이고 탐구적인 어린이\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교 교가의 작사가로 바르게 이어진 사람은?\",\n        \"options\": [\n            \"노중석\",\n            \"이안삼\",\n            \"윤석중\",\n            \"박목월\",\n            \"조오현\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교 교가의 작곡가로 바르게 이어진 사람은?\",\n        \"options\": [\n            \"안병원\",\n            \"금수현\",\n            \"이안삼\",\n            \"박태준\",\n            \"한스 영\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교 교가 1절에 등장하는 내용으로 알맞은 것은?\",\n        \"options\": [\n            \"백두산 높은 기상 영원한 우리 가슴\",\n            \"천지의 복된 기운 모인 배움터 고운 꿈 영글어 진리를 깨우치고\",\n            \"금수강산 삼천리 우리 D.I.E\",\n            \"태백산맥 정기를 받아 뻗어가는\",\n            \"감문국의 유적을 품은 고을에서\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교가 신설되는데 결정적인 계기가 된 1994년 일대 택지개발과 관련이 깊은 아파트 단지들은 어디인가?\",\n        \"options\": [\n            \"부곡 우방아파트와 화성아파트\",\n            \"부곡 주공아파트와 현대아파트\",\n            \"신음 코아루아파트와 삼도뷰빌\",\n            \"한신휴플러스와 덕산타운\",\n            \"영남에스바이와 세원아파트\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교 건물의 일반적인 층수로 알맞은 것은?\",\n        \"options\": [\n            \"지상 2층\",\n            \"지상 3층\",\n            \"지상 4층\",\n            \"지상 5층\",\n            \"지상 6층\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교 학교 시설 중 급식실, 도서관, 유치원 교실, 교무실 등이 주로 위치하는 층은 어디인가?\",\n        \"options\": [\n            \"1층\",\n            \"2층\",\n            \"3층\",\n            \"4층\",\n            \"별관 지하층\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교에서 체육관이 위치하고 있는 층은 어디인가?\",\n        \"options\": [\n            \"1층\",\n            \"2층\",\n            \"3층\",\n            \"4층\",\n            \"옥상층\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교에서 5, 6학년 학생들이 주로 컴퓨터 수업 등을 듣기 위해 찾아가는 교실이 주로 위치하는 층은 어디인가?\",\n        \"options\": [\n            \"1층\",\n            \"2층\",\n            \"3층\",\n            \"4층\",\n            \"별관\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교의 과거 초기 시절 학교 건물 벽면의 원래 기본 색상은 무엇이었는가?\",\n        \"options\": [\n            \"노란색\",\n            \"초록색\",\n            \"분홍색\",\n            \"흰색\",\n            \"하늘색\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"최근 대규모 외벽 공사 등을 거치며 변경된 김천부곡초등학교 건물 외벽의 대표적인 색상은 무엇인가?\",\n        \"options\": [\n            \"파란색\",\n            \"빨간색\",\n            \"노란색\",\n            \"주황색\",\n            \"보라색\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교에서 일반 학생들의 엘리베이터 이용은 원칙적으로 금지되지만, 예외적으로 이용할 수 있는 학생이나 상황에 해당하지 않는 것은?\",\n        \"options\": [\n            \"다리가 아파 거동이 불편한 학생\",\n            \"무거운 우유 박스를 나르는 우유 당번\",\n            \"교내 청소를 담당하는 구역 청소원 학생\",\n            \"(예외 규정에 포함되는 경우들 외의 일반적인 등하교 시 단순 장난이나 편의 목적)\",\n            \"(위 1, 2번 등 사유가 명확한 경우)\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교 운동회는 보통 연중 어느 시기에 주로 개최되는가?\",\n        \"options\": [\n            \"3월 개학 시즌\",\n            \"5~6월 경\",\n            \"8월 여름방학 직전\",\n            \"10월 가을 축제 시기\",\n            \"12월 학기 말\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교 운동회 날 정문 밖 풍경으로 흔히 볼 수 있었던 전통적인 먹거리나 즐길 거리가 아닌 것은?\",\n        \"options\": [\n            \"아이스크림\",\n            \"뽑기 및 달고나\",\n            \"솜사탕\",\n            \"번데기 및 슬러시\",\n            \"대형 놀이공원 자유이용권 판매 부스\"\n        ],\n        \"answer\": 4\n    },\n    {\n        \"question\": \"김천부곡초등학교 1, 2학년 학생들이 평일에 보통 수업을 마치고 귀가하는 교시(시간)는 언제인가?\",\n        \"options\": [\n            \"3교시\",\n            \"4교시\",\n            \"5교시\",\n            \"6교시\",\n            \"7교시\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교 3, 4학년 학생들이 일반적으로 정규 수업을 마치는 교시는 몇 교시인가?\",\n        \"options\": [\n            \"3교시\",\n            \"4교시\",\n            \"5교시\",\n            \"6교시\",\n            \"7교시\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교 5, 6학년 학생들이 일반적으로 하루 정규 수업을 마치는 교시는 몇 교시인가?\",\n        \"options\": [\n            \"3교시\",\n            \"4교시\",\n            \"5교시\",\n            \"6교시\",\n            \"7교시\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교 쉬는 시간 중, 학생들이 특히 활발하게 뛰어놀며 운동장으로 나가는 쉬는 시간은 보통 몇 교시가 끝난 뒤의 쉬는 시간인가?\",\n        \"options\": [\n            \"1교시 쉬는 시간\",\n            \"2교시 쉬는 시간 (중간놀이 시간 등)\",\n            \"3교시 쉬는 시간\",\n            \"점심시간 직전\",\n            \"4교시 쉬는 시간\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"다음 중 김천부곡초등학교에 실제로 개설되어 운영된 적이 있는 학교 운동부(스포츠 클럽)가 아닌 것은?\",\n        \"options\": [\n            \"배드민턴부\",\n            \"수영부\",\n            \"축구부\",\n            \"아이스하키부\",\n            \"(위 목록 외의 실제 존재하는 종목들)\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교 축구부가 과거 전국단위 대회에서 우승을 차지해 화제가 되었던 해는 언제인가?\",\n        \"options\": [\n            \"2010년\",\n            \"2012년\",\n            \"2015년\",\n            \"2018년\",\n            \"2020년\"\n        ],\n        \"answer\": 2\n    },\n    {\n        \"question\": \"김천부곡초등학교가 과거 스마트 교육 및 디지털 기반 학습 환경 조성과 관련하여 지정되어 운영되었던 대표적인 연구학교 유형은 무엇인가?\",\n        \"options\": [\n            \"디지털교과서 정책연구학교\",\n            \"생태전환교육 시범학교\",\n            \"인공지능(AI) 선도학교\",\n            \"자율형 사립 연구학교\",\n            \"다문화 교육 특성화 학교\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"경상북도교육청 등으로부터 지정받아 운영된 이력이 있는 김천부곡초등학교의 교육 중점 시범학교 분야는 무엇인가?\",\n        \"options\": [\n            \"기초학력 시범(지정)학교\",\n            \"예술중점학교\",\n            \"체육특성화 시범학교\",\n            \"로봇 코딩 교육 시범학교\",\n            \"영어 전용 거점 학교\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교가 2021년에 ‘행복한 꿈을 꾸는 시정원’을 만들기 위해 선정되어 조성 사업을 펼친 학교 프로그램의 명칭은 무엇인가?\",\n        \"options\": [\n            \"시울림학교\",\n            \"감성시화전 학교\",\n            \"문학사랑 꿈나무 학교\",\n            \"도서원 글마루 학교\",\n            \"인성함양 감성마당 학교\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교가 속해 있는 지역 교육행정기관은 어디인가?\",\n        \"options\": [\n            \"경상북도구미교육지원청\",\n            \"경상북도김천교육지원청\",\n            \"경상북도상주교육지원청\",\n            \"대구지방교육청 김천출장소\",\n            \"경상북도교육청 본청 직할\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교의 후문 쪽 구조와 관련하여 건물 특성상 계단을 통해 바로 연결되는 장소는 어디인가?\",\n        \"options\": [\n            \"강당 및 체육관\",\n            \"학교 운동장 중앙\",\n            \"급식실 뒷마당\",\n            \"컴퓨터실 입구\",\n            \"중앙현관 로비\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교가 위치한 부곡동 일대에서 학교 설립 추진 당시 주변 아파트 입주민들의 통학 편의를 위해 설립된 공립 초등학교로서 갖는 지리적 특징은 무엇인가?\",\n        \"options\": [\n            \"도심 상업 지구 한복판에 위치\",\n            \"대표적인 대규모 택지개발 및 아파트 주거 밀접 지구 내 위치\",\n            \"산간 지역에 위치한 전원형 분교\",\n            \"김천역 역사 바로 옆 선로 변에 위치\",\n            \"산업단지 내 근로자 자녀 전용 시설\"\n        ],\n        \"answer\": 1\n    },\n    {\n        \"question\": \"김천부곡초등학교의 교육 환경 중 디지털 환경과 연계되어 수업 시간에 활발히 활용되는 대표적인 스마트 기기는 무엇인가?\",\n        \"options\": [\n            \"교육청에서 지원하는 태블릿 PC\",\n            \"개인용 가상현실(VR) 헤드셋\",\n            \"학급별 고성능 드론\",\n            \"스마트 전자 교탁 전용 펜던트\",\n            \"휴대용 코딩 로봇\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교의 학급 편성 현황(특수학급 및 유치원 포함 대략적 규모) 중 최근 학교 교육과정 편제에서 볼 수 있는 특징이 아닌 것은?\",\n        \"options\": [\n            \"일반 학급 외에 특수학급이 편성되어 있다.\",\n            \"병설 혹은 단설 형태의 유치원 학급이 함께 운영된다.\",\n            \"학년별 다수의 학급이 편성되는 비교적 규모가 있는 공립 초등학교이다.\",\n            \"전교생이 50명 미만인 전형적인 농어촌 소규모 분교 형태이다.\",\n            \"다채로운 방과후학교 프로그램이 운영된다.\"\n        ],\n        \"answer\": 3\n    },\n    {\n        \"question\": \"김천부곡초등학교의 학교 공식 웹사이트 주소(도메인 체계)에 공통으로 들어가는 교육청 서버 도메인 형태는 무엇인가?\",\n        \"options\": [\n            \"gyo6.net\",\n            \"go.kr\",\n            \"edu.re.kr\",\n            \"school.ne.kr\",\n            \"ceb.kr\"\n        ],\n        \"answer\": 0\n    },\n    {\n        \"question\": \"김천부곡초등학교의 인근 학군 평가 및 지역 정보에서 주로 언급되는 학교의 설립 연도 및 학교 유형에 대한 설명으로 옳은 것은?\",\n        \"options\": [\n            \"1970년대에 개교한 유서 깊은 사립초등학교\",\n            \"2001년에 개교한 공립 초등학교로 지역 내 안정적인 통학 구역을 형성함\",\n            \"2020년에 신설된 최신형 대안형 혁신학교\",\n            \"1940년대 해방 직후에 세워진 국민학교의 명맥을 이음\",\n            \"중학교와 통합 운영되는 통합형(K-9) 학교\"\n        ],\n        \"answer\": 1\n    }\n];\n\n        // 요구된 26명 정확한 학생 명단\n        const studentsList = [\n            \"김예은\", \"김재은\", \"김윤솔\", \"나헤지\", \"박솔아\", \n            \"박주아\", \"박준희\", \"송지아\", \"신다원\", \"전소현\", \n            \"전시은\", \"주예진\", \"김규담\", \"김성현\", \"김지유ADMIN\", \n            \"김혜준\", \"박서한\", \"박우준\", \"신유찬\", \"안재현\", \n            \"이서빈\", \"이승운\", \"이시우\", \"장재훈\", \"전지훈\", \"정유재\"\n        ];\n\n        // --- 2. 로컬 스토리지 관리 함수 ---\n        function getStoredRankings() {\n            const data = localStorage.getItem('bugok_quiz_rankings');\n            return data ? JSON.parse(data) : {};\n        }\n\n        function saveRankings(rankings) {\n            localStorage.setItem('bugok_quiz_rankings', JSON.stringify(rankings));\n        }\n\n        // --- 3. 초기화 및 랭킹판 렌더링 ---\n        function initApp() {\n            const select = document.getElementById('student-select');\n            select.innerHTML = '<option value=\"\" disabled selected>-- 본인의 이름을 선택하세요 --<\/option>';\n            \n            studentsList.forEach(name => {\n                const opt = document.createElement('option');\n                opt.value = name;\n                opt.textContent = name + (name === '김지유ADMIN' ? ' 👑 (관리자)' : '');\n                select.appendChild(opt);\n            });\n\n            renderRankings();\n        }\n\n        function renderRankings() {\n            const rankings = getStoredRankings();\n            const tbody = document.getElementById('ranking-tbody');\n            tbody.innerHTML = '';\n\n            // 최고점 기준 내림차순 정렬\n            const sorted = Object.entries(rankings).sort((a, b) => b[1].score - a[1].score);\n\n            if (sorted.length === 0) {\n                tbody.innerHTML = `<tr><td colspan=\"4\" class=\"text-center py-6 text-white/70\">아직 리그전 기록이 없습니다.<br>첫 도전자가 되어보세요!<\/td><\/tr>`;\n                return;\n            }\n\n            sorted.forEach(([name, record], idx) => {\n                const tr = document.createElement('tr');\n                tr.className = \"border-b border-white/10 hover:bg-white/10 transition text-xs sm:text-sm\";\n                \n                let rankBadge = `${idx + 1}위`;\n                if (idx === 0) rankBadge = \"🥇 1위\";\n                else if (idx === 1) rankBadge = \"🥈 2위\";\n                else if (idx === 2) rankBadge = \"🥉 3위\";\n\n                tr.innerHTML = `\n                    <td class=\"py-2.5 px-2 font-bold\">${rankBadge}<\/td>\n                    <td class=\"py-2.5 px-2 font-medium\">${name}<\/td>\n                    <td class=\"py-2.5 px-2 text-center font-semibold text-emerald-200\">${record.correctCount ?? 0}개<\/td>\n                    <td class=\"py-2.5 px-2 text-right font-bold text-yellow-200\">${record.score}점<\/td>\n                `;\n                tbody.appendChild(tr);\n            });\n        }\n\n        const RESET_PASSWORD = '4420261357';\n\n        function clearRanking() {\n            const pw = document.getElementById('reset-pw');\n            pw.value = '';\n            document.getElementById('reset-error').textContent = '';\n            const m = document.getElementById('reset-modal');\n            m.classList.remove('hidden');\n            m.classList.add('flex');\n            pw.focus();\n        }\n\n        function closeResetModal() {\n            const m = document.getElementById('reset-modal');\n            m.classList.remove('flex');\n            m.classList.add('hidden');\n            document.getElementById('reset-pw').value = '';\n        }\n\n        function submitResetPassword() {\n            const pw = document.getElementById('reset-pw');\n            if (pw.value === RESET_PASSWORD) {\n                closeResetModal();\n                localStorage.removeItem('bugok_quiz_rankings');\n                renderRankings();\n                showAlert(\"알림\", \"랭킹판 기록이 초기화되었습니다.\");\n            } else {\n                document.getElementById('reset-error').textContent = '❌ 비밀번호가 올바르지 않습니다!';\n                pw.value = '';\n                pw.focus();\n            }\n        }\n\n        // --- 4. 퀴즈 리그전 게임 로직 ---\n        let currentQuizList = [];\n        let currentIndex = 0;\n        let currentScore = 0;      // 이번 판 점수\n        let correctCount = 0;      // 이번 판 정답 수\n        let activeStudent = \"\";\n        let timerInterval = null;\n        let timeLeft = 50;\n        let currentMode = 'basic'; // 'basic' 일반(+10점) / 'advanced' 심화(+15점)\n        let pointPerCorrect = 10;\n\n        // 랭킹판에 점수를 바로 누적 (풀 때마다 합산)\n        function addToRanking(name, points, corrects) {\n            const rankings = getStoredRankings();\n            const rec = rankings[name] || { score: 0, correctCount: 0 };\n            rec.score = (rec.score || 0) + points;\n            rec.correctCount = (rec.correctCount || 0) + corrects;\n            rec.date = new Date().toLocaleDateString('ko-KR');\n            rankings[name] = rec;\n            saveRankings(rankings);\n            renderRankings();\n        }\n\n        function startQuiz(mode) {\n            const select = document.getElementById('student-select');\n            activeStudent = select.value;\n\n            if (!activeStudent) {\n                showAlert(\"경고\", \"참가자 이름을 먼저 선택해주세요!\");\n                return;\n            }\n\n            currentMode = (mode === 'advanced') ? 'advanced' : 'basic';\n            pointPerCorrect = (currentMode === 'advanced') ? 15 : 10;\n\n            // 문제 랜덤 섞기\n            const source = (currentMode === 'advanced') ? quizAdvanced : quizBasic;\n            currentQuizList = [...source].sort(() => Math.random() - 0.5);\n            currentIndex = 0;\n            correctCount = 0;\n            currentScore = 0;\n\n            // 김지유ADMIN은 시작할 때마다 50점 지급 (랭킹에 누적)\n            if (activeStudent === '김지유ADMIN') {\n                currentScore = 50;\n                addToRanking(activeStudent, 50, 0);\n            }\n\n            // UI 전환\n            document.getElementById('quiz-setup').classList.add('hidden');\n            document.getElementById('quiz-play').classList.remove('hidden');\n            document.getElementById('quiz-result').classList.add('hidden');\n\n            const tag = document.getElementById('current-player-tag');\n            document.getElementById('tag-name').textContent = activeStudent;\n            tag.classList.remove('hidden');\n\n            // 50초 타이머 시작\n            timeLeft = 50;\n            updateTimerDisplay();\n\n            if (timerInterval) clearInterval(timerInterval);\n            timerInterval = setInterval(() => {\n                timeLeft--;\n                updateTimerDisplay();\n                if (timeLeft <= 0) {\n                    clearInterval(timerInterval);\n                    endQuiz(\"⏱️ 제한 시간 50초가 종료되었습니다!\");\n                }\n            }, 1000);\n\n            loadQuestion();\n        }\n\n        function updateTimerDisplay() {\n            document.getElementById('timer-display').textContent = `⏳ 남은 시간: ${timeLeft}초`;\n        }\n\n        function loadQuestion() {\n            if (currentIndex >= currentQuizList.length) {\n                endQuiz(\"🎉 모든 문제를 다 풀었습니다!\");\n                return;\n            }\n\n            const qObj = currentQuizList[currentIndex];\n            const modeLabel = (currentMode === 'advanced') ? '🔥 심화 ' : '';\n            document.getElementById('quiz-progress').textContent = `${modeLabel}문제 ${currentIndex + 1} / ${currentQuizList.length}`;\n            document.getElementById('question-text').textContent = qObj.question;\n\n            let options, answerIdx;\n            if (currentMode === 'advanced') {\n                // 심화: 보기 순서(①~⑤) 고정\n                options = qObj.options;\n                answerIdx = qObj.answer;\n            } else {\n                // 일반: 정답 1개 + 오답 4개를 섞어서 5지선다 생성\n                options = [qObj.answer, ...qObj.decoys].sort(() => Math.random() - 0.5);\n                answerIdx = options.indexOf(qObj.answer);\n            }\n\n            const optContainer = document.getElementById('options-container');\n            optContainer.innerHTML = '';\n\n            const labels = ['①', '②', '③', '④', '⑤'];\n            options.forEach((optText, i) => {\n                const btn = document.createElement('button');\n                btn.className = \"w-full p-3.5 bg-white/20 hover:bg-white/35 active:scale-98 text-white font-medium rounded-xl text-left transition border border-white/25 shadow-sm text-sm sm:text-base\";\n                btn.textContent = labels[i] + ' ' + optText;\n                btn.onclick = () => checkAnswer(i, answerIdx);\n                optContainer.appendChild(btn);\n            });\n        }\n\n        function checkAnswer(selected, correct) {\n            if (selected === correct) {\n                correctCount++;\n                currentScore += pointPerCorrect;\n                // 맞힐 때마다 랭킹판에 누적\n                addToRanking(activeStudent, pointPerCorrect, 1);\n            }\n\n            currentIndex++;\n            loadQuestion();\n        }\n\n        function endQuiz(message) {\n            if (timerInterval) clearInterval(timerInterval);\n            document.getElementById('quiz-play').classList.add('hidden');\n            document.getElementById('quiz-result').classList.remove('hidden');\n\n            const record = getStoredRankings()[activeStudent] || { score: 0 };\n            const modeText = (currentMode === 'advanced') ? '🔥 심화 문제' : '🚀 일반 문제';\n\n            document.getElementById('result-score-text').innerHTML = `\n                <p class=\"font-medium\">${message}<\/p>\n                <p class=\"mt-2 text-white/90\">참가자: <strong class=\"text-white\">${activeStudent}<\/strong> (${modeText})<\/p>\n                <p class=\"mt-1\">맞힌 문제 수: <span class=\"text-emerald-200 font-bold\">${correctCount} / ${currentQuizList.length}<\/span>개<\/p>\n                <p class=\"mt-1\">이번 판 획득 점수: <span class=\"text-yellow-200 font-bold\">+${currentScore}점<\/span><\/p>\n                <p class=\"mt-1\">누적 점수: <span class=\"text-yellow-200 font-extrabold text-2xl\">${record.score}점<\/span><\/p>\n            `;\n        }\n\n        function resetQuizView() {\n            document.getElementById('quiz-setup').classList.remove('hidden');\n            document.getElementById('quiz-play').classList.add('hidden');\n            document.getElementById('quiz-result').classList.add('hidden');\n            document.getElementById('current-player-tag').classList.add('hidden');\n            document.getElementById('student-select').value = \"\";\n        }\n\n        // --- 5. 모달 제어 함수 (alert 대체) ---\n        function showAlert(title, message) {\n            document.getElementById('modal-title').textContent = title;\n            document.getElementById('modal-message').textContent = message;\n            document.getElementById('custom-modal').classList.remove('hidden');\n            document.getElementById('custom-modal').classList.add('flex');\n        }\n\n        function closeModal() {\n            document.getElementById('custom-modal').classList.remove('flex');\n            document.getElementById('custom-modal').classList.add('hidden');\n        }\n\n        // 페이지 로드 시 초기화 실행\n        window.onload = function() {\n            initApp();\n        };\n    <\/script>\n<\/body>\n<\/html>"
   };
 
-  const ORDER = ['bank', 'asset', 'quiz'];
+  const ORDER = ['home', 'bank', 'asset', 'quiz'];
   // 아이디 : 비밀번호
   const ACCOUNTS = {
     'Admin0412': 'Admin0412',
@@ -152,7 +226,9 @@
     });
 
     const frame = document.getElementById('frame-' + id);
-    if (!loaded[id]) {
+    if (id === 'home') {
+      renderHome();
+    } else if (!loaded[id]) {
       loaded[id] = true;
       const loading = document.getElementById('loading');
       loading.classList.add('show');
@@ -175,6 +251,159 @@
     });
   });
 
+  /* ===== 홈 대시보드 ===== */
+  const MEALS = {
+            1: "찹쌀밥(자유)<br>쇠고기들깨미역국(5.6.16)<br>효두단호박조림(5.6.13.14)<br>고구마치즈돈가스/소스(1.2.5.6.10.12.13.16.18)<br>깍두기담김(9)<br>배추김치(자율)(9)<br>구이/구주/성참(자율)(5.6.13)<br>우리밀초코파이(1.2.5.6)<br>카페라떼샐러드(유)(2.13.12)",
+            2: "쌀밥(자유)<br>잔치국수/양념장(1.5.6.9)<br>콩나물무침(자율)(5)<br>쇠고기육전(1.5.8.16.18)<br>배추김치(자율)(9)<br>초코컵쿠키(1.2.5.6)<br>하루요구르트(사과맛)(7)<br>바나나",
+            5: "대체공휴일",
+            6: "영양잡곡밥(5)<br>굴림만두소스조림(1.5.6.10.12.13.15.16.18)<br>시래기조림(자율)(5.6)<br>감자파프리카볶음(5)<br>배추김치7단계담김(9)<br>배추김치(자율)(9)<br>궁중지떡<br>한반갈비탕(1.5.6.16)",
+            7: "쇠고기콩나물밥/양념장(5.6.18)<br>한글날레몬마들렌(1.2.5.6)<br>곤드레된장국(5.6.9)<br>치커리양배추생채(자율)(5.8.13)<br>허니바베큐치킨(2.5.6.12.13.15)<br>배추김치(자율)(9)<br>진짬뽕사과",
+            8: "쌀밥(자유)<br>스파게티(주)(1.2.5.6.10.12.13.16)<br>들깨두부국(5.6)<br>닭꼬치70(5.6.15)<br>깍두기(9)<br>배추김치(자율)(9)<br>오이양배추유자청샐러드(자율)(13)<br>파인애플(돈)",
+            9: "한글날",
+            12: "찰현미밥<br>전복죽(자유)(18)<br>미니찐빵(1.2.5.6)<br>마라탕(1.2.5.8.9.10.13.15.16.17)<br>상치유자청데리야끼구이(5.6.13)<br>찹쌀콩알치킨볶음(5.5.13)<br>배추김치(자율)(9)<br>친환경배",
+            13: "클로렐라쌀밥<br>한우갈비찜(5.6.13.16)<br>애호박들깨볶음(5.9)<br>부추장국(5.6)<br>배추김치(자율)(9)<br>친환경사시미스컷<br>파프리카/쌈장(자율)(5.6)<br>곗탕(5.6.8.9.13)",
+            14: "치킨마요덮밥(1.5.6.13.15)<br>매운콩나물국(5.9)<br>우엉장조림(5.6.13.19)<br>오이치커리무침(자율)(13)<br>배추김치(자율)(9)<br>초코크런치도넛아이스크림(1.2.5)<br>바나나",
+            15: "차수수밥<br>얼큰순두부국(5.6.9)<br>명태표조림(5.6.13)<br>우엉장조림(5.6.10.13.16)<br>김말이/떡볶이(1.5.8.13.16)<br>배추김치(자율)(9)<br>구들뺌/쌈장(자율)(5.6.13)<br>친환경사과",
+            16: "찰보리밥<br>쇠고기등뼈국(5.6.8.9.16)<br>견과류조림(4.5.6.12.14.19)<br>치킨샐러드(1.2.5.6.12.15)<br>더덕양념구이(자율)(2)<br>배추김치(자율)(9)<br>유기농그릭식요거트딸기(2)",
+            19: "토마토케첩(12)<br>머룸감자주스(5.6.13)<br>견과류완전체볶음(4.5.6.14)<br>김구이(5)<br>배추김치(자율)(9)<br>초막(1.2.5.6)<br>부대찌개(1.2.5.8.9.10.15.16)<br>오이/고추/쌈장(자율)(5.6.13)",
+            20: "찰현미밥<br>이온드링크이프조림(5.6.13)<br>콘치즈그라팅(1.2.5.6.8.13)<br>배추김치7단담김(9)<br>배추김치(자율)(9)<br>돈육살버섯구이/바비큐소스(5.6.10.12.13)<br>순두부찌개(5.6.9.16)<br>안상추/오이 고추/쌈장(자율)(5.6.13)",
+            21: "채뼁데이<br>비빔밥(5.6)<br>단호박죽(자율)(13)<br>필이비선된장국(5.6)<br>고추장볶음(5.6.13)<br>연근조림(자율)(5.6.13)<br>배추김치(자율)(9)<br>성균사과주스(13)<br>연어스테이크/소스(1.2.5.6.12)",
+            22: "영양잡곡국밥(5)(30)(1.2.5.6)<br>사과깍뚜기(5.6.18)<br>두부/김치볶음(5.9.13)<br>계란후임은태전(1.5.6)<br>배추김치(자율)(9)<br>양배추한/양념장(사율)(5.6)<br>친환경샤인머스캣",
+            23: "차수수밥<br>시래기조림(자율)(5.6)<br>건다래볶음(5.13)<br>쭈꾸미떡볶음(5.8.12.13)<br>배추김치(자율)(9)<br>고르고졸라피자(1.2.5.6.10.13.15.16)<br>실원당(1.5.6.16)<br>친환경배",
+            26: "찰기장밥<br>조랭이국(국)(1.5.6.16)<br>검정콩조림(5.6.13)<br>매콤닭갈비찜(5.6.10.13)<br>숙주나물무침<br>배추김치(자율)(9)<br>미니심원탕(팥)(1.2.5.6)<br>친환경사과",
+            27: "찰보리밥<br>수제양송이크림스트(자)(2.6)<br>돼지등뼈들김치탕(5.6.10)<br>적포도봉조림(4.5.6.13)<br>등심돈가스/소스(1.2.5.6.10.12.13.16.18)<br>오이깍두기(9.13)<br>배추김치(자율)(9)",
+            28: "쌀밥(자유)<br>쌀폭장견(주)(5.6.10.13.16)<br>판슥사무탕수/소스(1.5.6.9.12.13)<br>배추김치(자율)(9)<br>찰감사꽃인두찜(1.5.6.10.16.18)<br>친환경샤인머스캣",
+            29: "강화쌀밥<br>한우불고기(5.6.13.18)<br>우엉튀김조림(5.6.13)<br>치즈가리비구이(18)<br>배추김치(자율)(9)<br>모듬쌈/쌈장(자율)(5.6.13)<br>호박고추장찌개(5.6)",
+            30: "영양잡곡국밥(5)<br>왕대김자국(1.5.8)<br>두부조림(5.6.13)<br>무말랭이진미무침(5.6.13.17)<br>오이고추무침(자율)(5.6.13)<br>배추김치(자율)(9)<br>무탕(자율)<br>오리후세/머스터드(1.2.5.6)"
+        };
+  const TIMETABLE = {
+            1: ["1교시: 수학", "2교시: 영어", "3교시: 국어", "4교시: 국어", "5교시: 도덕"],
+            2: ["1교시: 수학", "2교시: 국어", "3교시: 창체", "4교시: 사회", "5교시: 미술", "6교시: 미술"],
+            3: ["1교시: 수학", "2교시: 과학", "3교시: 체육", "4교시: 사회", "5교시: 음악"],
+            4: ["1교시: 과학", "2교시: 수학", "3교시: 영어", "4교시: 사회", "5교시: 창체"],
+            5: ["1교시: 국어", "2교시: 국어", "3교시: 체육", "4교시: 과학", "5교시: 음악"]
+        };
+  const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+  let homeStarted = false;
+
+  function hEsc(v) { const t = document.createElement('div'); t.textContent = String(v); return t.innerHTML; }
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function readJSON(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+  }
+  function homeVisible() { return document.getElementById('frame-home').classList.contains('active'); }
+
+  function tickClock() {
+    const d = new Date();
+    const h = d.getHours();
+    document.getElementById('homeTime').textContent =
+      (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+    document.getElementById('homeDate').textContent =
+      d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + DAYS[d.getDay()] + '요일)';
+  }
+
+  function weatherInfo(code) {
+    if (code === 0) return { icon: '☀️', text: '맑음' };
+    if (code >= 1 && code <= 3) return { icon: '⛅', text: '구름 조금/흐림' };
+    if (code >= 45 && code <= 48) return { icon: '🌫️', text: '안개' };
+    if (code >= 51 && code <= 67) return { icon: '🌧️', text: '비' };
+    if (code >= 71 && code <= 77) return { icon: '❄️', text: '눈' };
+    if (code >= 80 && code <= 82) return { icon: '🌦', text: '소나기' };
+    if (code >= 95) return { icon: '🌩️', text: '뇌우' };
+    return { icon: '🌡️', text: '기온 정보' };
+  }
+
+  function loadWeather() {
+    const box = document.getElementById('homeWeather');
+    box.className = 'h-note';
+    box.textContent = '김천 날씨 정보 확인 중...';
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=36.12&longitude=128.11&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul';
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (!data || !data.current_weather) throw new Error('no data');
+        const cw = data.current_weather;
+        const info = weatherInfo(cw.weathercode);
+        let range = '';
+        if (data.daily && data.daily.temperature_2m_max && data.daily.temperature_2m_min) {
+          range = '<div class="h-sub">최저 ' + Math.round(data.daily.temperature_2m_min[0]) + '° / 최고 ' + Math.round(data.daily.temperature_2m_max[0]) + '°</div>';
+        }
+        box.className = '';
+        box.innerHTML = '<div class="h-weather"><span class="ico">' + info.icon + '</span><div><div class="temp">' + Math.round(cw.temperature) + '°C</div><div class="h-sub">경상북도 김천시 (' + info.text + ')</div>' + range + '</div></div>';
+      })
+      .catch(() => {
+        box.className = 'h-note';
+        box.textContent = '날씨를 불러오지 못했어요. 인터넷 연결을 확인하고 🔄를 눌러 주세요.';
+      });
+  }
+
+  function renderMeal() {
+    const d = new Date();
+    const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate(), dow = d.getDay();
+    const head = '<div class="h-note" style="color:#fde68a;font-weight:700;">📅 ' + m + '월 ' + day + '일 (' + DAYS[dow] + ') 중식</div>';
+    let body;
+    if (dow === 0 || dow === 6) {
+      body = '<div class="h-note">주말은 급식이 없습니다! 🎉</div>';
+    } else if (y !== 2026 || m !== 10) {
+      body = '<div class="h-note">오늘은 등록된 10월 식단표 범위가 아닙니다.</div>';
+    } else {
+      const meal = MEALS[day];
+      if (!meal) body = '<div class="h-note">해당 날짜의 식단 정보가 등록되어 있지 않습니다.</div>';
+      else if (meal === '대체공휴일' || meal === '한글날') body = '<div class="h-note">🎉 ' + meal + '로 급식이 없습니다!</div>';
+      else body = '<ul class="h-list">' + meal.split('<br>').map(l => '<li>' + hEsc(l) + '</li>').join('') + '</ul>';
+    }
+    document.getElementById('homeMeal').innerHTML = head + body;
+  }
+
+  function renderTimetable() {
+    const d = new Date();
+    const list = TIMETABLE[d.getDay()];
+    const box = document.getElementById('homeTimetable');
+    if (!list) { box.innerHTML = '<div class="h-note">오늘은 주말이라 수업이 없습니다! 🎉</div>'; return; }
+    box.innerHTML = '<div class="h-note" style="color:#fde68a;font-weight:700;">' + DAYS[d.getDay()] + '요일</div><ul class="h-list h-tt">' +
+      list.map(c => { const i = c.indexOf(':'); return '<li><b>' + hEsc(c.slice(0, i)) + '</b><span>' + hEsc(c.slice(i + 1).trim()) + '</span></li>'; }).join('') + '</ul>';
+  }
+
+  function rankHTML(entries, unit) {
+    const rows = entries.filter(e => e[1] !== 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (!rows.length) return '<li class="h-empty">기록이 없습니다.</li>';
+    const medal = ['🥇', '🥈', '🥉'];
+    return rows.map((e, i) => '<li class="h-rank"><span>' + (medal[i] || (i + 1) + '.') + ' ' + hEsc(e[0]) + '</span><strong>' + e[1].toLocaleString() + unit + '</strong></li>').join('');
+  }
+
+  function renderRankings() {
+    const assets = readJSON('class4_4_assets_data', {});
+    document.getElementById('homeAsset').innerHTML = rankHTML(Object.keys(assets).map(n => [n, Number(assets[n]) || 0]), '원');
+
+    const records = readJSON('classBankRecords', []);
+    const sav = {}, dep = {};
+    records.forEach(r => {
+      const amt = Number(r.amount) || 0;
+      if (r.type === '정기적금') sav[r.name] = (sav[r.name] || 0) + amt;
+      if (r.type === '정기예금') dep[r.name] = (dep[r.name] || 0) + amt;
+    });
+    document.getElementById('homeSavings').innerHTML = rankHTML(Object.keys(sav).map(n => [n, sav[n]]), '원');
+    document.getElementById('homeDeposit').innerHTML = rankHTML(Object.keys(dep).map(n => [n, dep[n]]), '원');
+
+    const quiz = readJSON('bugok_quiz_rankings', {});
+    document.getElementById('homeQuiz').innerHTML = rankHTML(Object.keys(quiz).map(n => [n, Number(quiz[n] && quiz[n].score) || 0]), '점');
+  }
+
+  function renderHomeData() { renderMeal(); renderTimetable(); renderRankings(); }
+
+  function renderHome() {
+    if (!homeStarted) {
+      homeStarted = true;
+      tickClock();
+      setInterval(tickClock, 1000);
+      loadWeather();
+      setInterval(loadWeather, 10 * 60 * 1000);
+      setInterval(() => { if (homeVisible()) renderHomeData(); }, 5000);
+      window.addEventListener('storage', () => { if (homeVisible()) renderHomeData(); });
+    }
+    renderHomeData();
+  }
+
   function enter(r) {
     role = r;
     try { sessionStorage.setItem(ROLE_KEY, r); } catch (e) {}
@@ -188,7 +417,7 @@
     out.hidden = false;
 
     let start = allowed[0];
-    if (r === 'member') { try { start = localStorage.getItem(LAST_KEY) || 'bank'; } catch (e) {} }
+    if (r === 'member') { try { start = localStorage.getItem(LAST_KEY) || 'home'; } catch (e) {} }
     showTab(start);
   }
 
