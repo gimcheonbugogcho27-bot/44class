@@ -151,6 +151,11 @@
   .d-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .d-btn:disabled { opacity: .55; cursor: default; }
   .d-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .d-toggle { padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.12); color: #fff;
+    font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s, box-shadow .2s; }
+  .d-toggle:hover { background: rgba(255,255,255,.24); }
+  .d-toggle.on { background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #6ee7b7; box-shadow: 0 0 14px rgba(16,185,129,.55); }
+  .d-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   .d-opt { font-size: 13px; color: rgba(255,255,255,.85); cursor: pointer; user-select: none; }
   .d-msg { min-height: 18px; font-size: 13px; color: #fecaca; }
 
@@ -230,6 +235,7 @@
     <div class="d-bar"><i id="danceBar"></i></div>
     <div class="d-title" id="danceTitle"></div>
     <button class="d-btn" id="danceBtn" onclick="startDance()">🎲 랜덤 플레이 댄스 시작!</button>
+    <button class="d-toggle" id="danceLoopBtn" onclick="toggleDanceLoop()" aria-pressed="false">🔁 무한반복: 꺼짐</button>
     <div class="d-msg" id="danceMsg" role="status"></div>
   </section>
   <div class="loading" id="loading">불러오는 중...</div>
@@ -351,11 +357,15 @@
     { src: 'dance4.mp3', len: 764 }
   ];
   const DANCE_SECONDS = 15;
+  const DANCE_GAP_SECONDS = 3;      // 무한반복 중 다음 노래까지 쉬는 시간(초)
   const DANCE_SKIP_START = 0;       // 첫 파일 앞부분에 안내/인트로가 있으면 건너뛸 초 (예: 60)
   const DANCE_SLOT = 30;            // 전체를 30초 칸으로 나눠 한 번씩 뽑아요 (같은 구간 반복 방지)
   const danceAudio = new Audio();
   danceAudio.preload = 'metadata';
   let danceBag = [], danceCur = '', danceRun = 0, danceTimer = null, danceBusy = false;
+  let danceLoop = false;            // 무한반복 켜짐/꺼짐
+  let danceActive = false;          // 시작 버튼을 눌러 진행 중인 상태
+  let danceState = 'idle';          // idle | loading | playing | gap | done
 
   function $d(id) { return document.getElementById(id); }
   function danceMsg(t) { $d('danceMsg').textContent = t || ''; }
@@ -371,11 +381,28 @@
     return { src: pick.src, start: pick.start + Math.floor(Math.random() * (DANCE_SLOT - DANCE_SECONDS)) };
   }
 
-  function danceIdle(label) {
+  function renderDanceBtn() {
     const b = $d('danceBtn');
-    b.disabled = false;
-    b.textContent = label || '🎲 랜덤 플레이 댄스 시작!';
-    $d('danceStage').classList.remove('playing');
+    const labels = { idle: '🎲 랜덤 플레이 댄스 시작!', loading: '🎵 노래 고르는 중...', playing: '🎵 춤추는 중!', gap: '🎲 다음 노래 준비 중...', done: '🎲 다음 노래 뽑기!' };
+    if (danceLoop && danceActive) { b.disabled = false; b.textContent = '⏹ 정지'; return; }   // 무한반복 중에는 정지 버튼
+    b.disabled = danceState === 'loading' || danceState === 'playing' || danceState === 'gap';
+    b.textContent = labels[danceState];
+  }
+
+  function setDanceState(st) {
+    danceState = st;
+    $d('danceStage').classList.toggle('playing', st === 'playing');
+    renderDanceBtn();
+  }
+
+  function toggleDanceLoop() {
+    danceLoop = !danceLoop;
+    const t = $d('danceLoopBtn');
+    t.classList.toggle('on', danceLoop);
+    t.setAttribute('aria-pressed', danceLoop ? 'true' : 'false');
+    t.textContent = '🔁 무한반복: ' + (danceLoop ? '켜짐' : '꺼짐');
+    if (!danceLoop && danceState === 'gap') { stopDance(); return; }   // 다음 곡을 기다리는 중에 끄면 여기서 멈춤
+    renderDanceBtn();   // 노래가 나오는 중에 끄면 이번 곡까지만 재생하고 멈춰요
   }
 
   function seekPick(pick) {   // 필요한 파일을 불러온 뒤 해당 지점으로 이동
@@ -399,14 +426,20 @@
     });
   }
 
-  async function startDance() {
+  function startDance() {
+    if (danceLoop && danceActive) { stopDance(); return; }   // 무한반복 중에 누르면 정지
     if (danceBusy) return;
+    danceActive = true;
+    playOneDance();
+  }
+
+  async function playOneDance() {
     danceBusy = true;
     const run = ++danceRun;
     clearTimeout(danceTimer);
     danceAudio.pause();
-    $d('danceBtn').disabled = true;
-    $d('danceBtn').textContent = '🎵 노래 고르는 중...';
+    setDanceState('loading');
+    $d('danceTitle').textContent = '';
     $d('danceCount').textContent = DANCE_SECONDS;
     $d('danceBar').style.width = '0';
     danceMsg('');
@@ -423,12 +456,11 @@
       danceMsg(e && e.name === 'NotAllowedError'
         ? '⚠️ 소리를 재생하지 못했어요. 버튼을 한 번 더 눌러 주세요.'
         : '❌ 음악 파일(dance1~4.mp3)을 불러오지 못했어요. index.html 과 같은 위치에 모두 올라가 있는지 확인해 주세요.');
-      danceBusy = false; danceIdle(); return;
+      danceBusy = false; danceActive = false; setDanceState('idle'); return;
     }
     if (run !== danceRun) { danceAudio.pause(); return; }
 
-    $d('danceStage').classList.add('playing');
-    $d('danceBtn').textContent = '🎵 춤추는 중!';
+    setDanceState('playing');
     const t0 = Date.now();
     const tick = () => {
       if (run !== danceRun) return;
@@ -442,12 +474,22 @@
   }
 
   function finishDance() {
-    danceRun++;
+    const run = ++danceRun;
     danceAudio.pause();
+    danceBusy = false;
     $d('danceCount').textContent = '끝!';
     $d('danceBar').style.width = '100%';
-    danceBusy = false;
-    danceIdle('🎲 다음 노래 뽑기!');
+    if (danceLoop && danceActive) { dancePause(run, DANCE_GAP_SECONDS); return; }   // 무한반복: 잠깐 쉬고 다음 곡
+    danceActive = false;
+    setDanceState('done');
+  }
+
+  function dancePause(run, sec) {
+    if (run !== danceRun || !(danceLoop && danceActive)) return;
+    if (sec <= 0) { playOneDance(); return; }
+    setDanceState('gap');
+    $d('danceTitle').textContent = '🔁 ' + sec + '초 뒤 다음 노래!';
+    danceTimer = setTimeout(() => dancePause(run, sec - 1), 1000);
   }
 
   function stopDance() {
@@ -455,10 +497,12 @@
     clearTimeout(danceTimer);
     danceAudio.pause();
     danceBusy = false;
+    danceActive = false;
     $d('danceCount').textContent = DANCE_SECONDS;
     $d('danceBar').style.width = '0';
+    $d('danceTitle').textContent = '';
     danceMsg('');
-    danceIdle();
+    setDanceState('idle');
   }
 
   function homeVisible() { return document.getElementById('frame-home').classList.contains('active'); }
