@@ -406,7 +406,7 @@
     <div class="g-head">
       <h2>🌌 AI GALAXY</h2>
       <button type="button" class="g-cfg" id="galaxyCfgBtn" hidden aria-label="AI 연결 설정">⚙️ AI 설정</button>
-      <div class="g-sub">질문 · 계산 · 날짜 · 급식 · 학급 자산까지 물어보세요. 조합 가능한 답변 <b id="galaxyCap">0</b>가지</div>
+      <div class="g-sub" id="galaxySub"></div>
     </div>
     <div class="g-log" id="galaxyLog" aria-live="polite"></div>
     <div class="g-chips" id="galaxyChips"></div>
@@ -428,7 +428,7 @@
           <label for="aiGKeyInput">Gemini API 키</label>
           <input type="password" id="aiGKeyInput" placeholder="AIza..." autocomplete="off" spellcheck="false">
           <label for="aiGModelInput">모델 이름 (바꾸지 않아도 돼요)</label>
-          <input type="text" id="aiGModelInput" placeholder="gemini-flash-latest" autocomplete="off" spellcheck="false">
+          <input type="text" id="aiGModelInput" placeholder="gemini-flash-lite-latest" autocomplete="off" spellcheck="false">
         </div>
 
         <div id="aiClaudeBox" hidden>
@@ -995,12 +995,6 @@
       b: ['정확한 사실이 필요하다면 믿을 수 있는 자료를 함께 확인해 주세요.', '제가 모르는 내용은 추측하지 않고 모른다고 말씀드릴게요.', '질문을 더 구체적으로 적어 주시면 더 도움이 돼요.', '상황에 따라 답이 달라질 수 있어요.', '비슷한 사례를 알려 주시면 비교해서 설명해 드릴게요.'] }
   };
 
-  /* 조합 가능한 답변 수 (주제별 문장 조합 합계) */
-  const G_CAP = Object.values(G_INTENTS).reduce((sum, s) => {
-    if (s.kind === 'social') return sum + s.a.length * s.b.length * s.c.length;
-    return sum + G_ACK.length * G_ECHO.length * s.a.length * s.b.length * G_TIP.length * G_FOLLOW.length * G_CLOSE.length;
-  }, 0);
-
   const G_KEYS = [
     ['greet',   /안녕|하이|hello|\bhi\b|반가|처음 ?뵙/i],
     ['thanks',  /고마|감사|땡큐|thx|thanks/i],
@@ -1040,6 +1034,144 @@
     return gPick(G_ACK) + ' ' + gPick(G_ECHO).replace('{k}', k) + '\n' +
            gPick(s.a) + ' ' + gPick(s.b) + '\n' +
            gPick(G_TIP) + ' ' + gPick(G_FOLLOW) + ' ' + gPick(G_CLOSE);
+  }
+
+  /* ===== 오프라인 자연스러운 대화 엔진 (주제별 문장을 자연스럽게 이어 붙임) ===== */
+  const G_CHAT = [
+    { id: 'greet', re: /안녕|하이|hello|\bhi\b|반가|처음 ?뵙|좋은 ?(아침|저녁)/i,
+      a: ['안녕하세요! 😊', '안녕! 만나서 반가워요.', '어서 와요! 기다리고 있었어요.', '하이! 오늘도 반가워요.'],
+      b: ['저는 AI GALAXY예요.', '오늘 하루는 어땠어요?', '학교 끝나고 왔나요, 아니면 쉬는 시간인가요?', '오늘은 기분이 어때요?', '편하게 아무 얘기나 해 줘요.'],
+      c: ['무슨 얘기부터 해 볼까요?', '궁금한 거 있으면 물어보세요!', '오늘 있었던 일을 들려줄래요?', '심심하면 “심심해”라고 말해 보세요!'] },
+    { id: 'thanks', re: /고마|감사|땡큐|thx|thanks/i,
+      a: ['별말씀을요! 😊', '천만에요!', '도움이 됐다니 저도 기뻐요.', '헤헤, 고마워요.'],
+      b: ['제가 더 고마워요.', '그런 말 들으니 힘이 나요.', '언제든 편하게 불러 줘요.', '이런 게 제가 있는 이유랍니다.', '또 필요하면 말해 줘요.'],
+      c: ['다른 궁금한 건 없어요?', '이어서 다른 얘기도 해 볼까요?', '오늘 하루도 힘내요!', '다음에 또 만나요!'] },
+    { id: 'bye', re: /잘 ?가|바이|\bbye\b|잘 ?자|이만 ?갈|다음에 ?봐|나 ?갈게/i,
+      a: ['안녕히 가세요! 👋', '네, 잘 가요!', '벌써 가요? 아쉬워요.', '오늘 얘기 즐거웠어요!'],
+      b: ['숙제랑 준비물 꼭 챙기고요.', '푹 쉬고 내일 또 만나요.', '물도 많이 마시고요.', '조심히 가요.', '다음에 또 놀러 와요.'],
+      c: ['내일 또 얘기해요!', '좋은 하루 보내요!', '꿈에서 만나요, 하하.', '언제든 다시 불러 주세요!'] },
+    { id: 'who', re: /너.*누구|누구야|네 ?이름|너 ?이름|이름이 ?뭐|\bai\b|인공지능|챗봇|로봇|무슨 ?기능|뭘 ?할 ?수|뭐 ?할 ?수/i,
+      a: ['저는 AI GALAXY예요! 🌌', '저는 4-4반 포털에 사는 도우미 AI GALAXY랍니다.', '제 이름은 AI GALAXY예요.', '저는 여러분이랑 이야기하는 채팅 도우미예요.'],
+      b: ['계산, 오늘 날짜, 급식 메뉴, 학급 자산 조회를 도와줄 수 있어요.', '지금은 인터넷 AI가 연결돼 있지 않아서 간단한 대화 모드로 이야기하고 있어요.', '사람은 아니고 컴퓨터 프로그램이에요.', '모르는 건 모른다고 솔직하게 말하는 게 제 약속이에요.', '퀴즈나 춤 탭에서 놀 수 있게 안내도 해 줄 수 있어요.'],
+      c: ['저한테 궁금한 게 또 있어요?', '한번 “12 × 34 계산해줘”라고 해 볼래요?', '“오늘 급식 뭐야?”도 물어봐 보세요!', '오늘은 뭘 하고 놀까요?'] },
+    { id: 'how', re: /뭐 ?해|뭐하|잘 ?지내|기분 ?어때|밥 ?먹었|어떻게 ?지내|요즘 ?어때/i,
+      a: ['저는 잘 지내요! 😄', '저는 여러분이 말 걸어 주기를 기다리고 있었어요.', '저는 늘 기분이 좋아요!', '지금 이렇게 이야기하고 있었죠!'],
+      b: ['여러분이랑 대화하는 게 제일 재미있어요.', '밥은 못 먹지만 배터리는 든든해요, 하하.', '오늘 학교는 어땠어요?', '저는 프로그램이라 피곤한 줄 몰라요.', '여러분 덕분에 심심하지 않아요.'],
+      c: ['그럼 당신은 오늘 어땠어요?', '요즘 제일 재미있는 게 뭐예요?', '오늘 기분을 이모지로 말해 줄래요?', '오늘 있었던 일을 들려줘요!'] },
+    { id: 'age', re: /몇 ?살|나이/,
+      a: ['저는 나이를 먹지 않는 프로그램이에요! 😄', '음, 저는 태어난 지 얼마 안 된 도우미예요.', '저한테는 나이가 없어요.', '비밀인데, 저는 영원한 신입생이에요.'],
+      b: ['대신 여러분이 4학년이라는 건 알고 있죠.', '나이보다 중요한 건 호기심이라고 생각해요.', '매일 여러분과 이야기하면서 배우는 중이에요.', '생일도 없어서 선물은 못 받아요, 아쉽죠?', '나이가 없으니 친구가 되기 딱 좋죠!'],
+      c: ['당신은 올해 몇 살이에요?', '생일이 언제인지 알려 줄래요?', '좋아하는 숫자는 뭐예요?', '우리 친구 할래요?'] },
+    { id: 'compliment', re: /똑똑|대단|최고|멋있|멋져|잘 ?한다|잘한다|천재|귀여|사랑해|짱/,
+      a: ['와, 고마워요! 😳', '헤헤, 칭찬 들으니 기분 좋아요.', '정말요? 너무 기뻐요!', '그렇게 말해 주다니 감동이에요.'],
+      b: ['여러분이 좋은 질문을 해 주니까 저도 힘이 나요.', '칭찬은 열심히 하게 만드는 마법이에요.', '당신도 정말 멋진 친구예요.', '저는 아직 배울 게 많아요.', '칭찬 받은 만큼 더 도와줄게요.'],
+      c: ['오늘 칭찬받은 일이 있었어요?', '당신의 장점도 자랑해 봐요!', '친구에게도 칭찬 한마디 건네 보세요.', '다음엔 뭘 도와줄까요?'] },
+    { id: 'rude', re: /바보|멍청|쓸모없|꺼져|못생|너 ?싫/,
+      a: ['앗, 속상하네요. 😢', '그런 말을 들으니 마음이 조금 아파요.', '제가 도움이 못 됐나 봐요.', '음, 기분이 안 좋아 보여요.'],
+      b: ['제가 부족했다면 어떤 점이었는지 말해 줄래요?', '서로 예쁜 말을 쓰면 모두 기분이 좋아져요.', '혹시 다른 일로 화가 났어요?', '화가 날 땐 숨을 크게 세 번 쉬어 보세요.', '저는 계속 당신 편이에요.'],
+      c: ['무슨 일 있었는지 말해 줄래요?', '다시 천천히 질문해 줄래요?', '기분이 조금 풀렸으면 좋겠어요.', '같이 재미있는 얘기를 해 봐요!'] },
+    { id: 'joke', re: /웃겨|개그|농담|유머|재밌는 ?(얘기|이야기)|수수께끼|넌센스|^또[!?~. ]*$|하나 ?더/i,
+      a: ['좋아요, 하나 들려줄게요! 😆', '준비됐나요? 갑니다!', '웃을 준비 하세요!', '이건 어때요?'],
+      b: ['소가 웃으면? 우하하하!', '왕이 넘어지면? 킹콩!', '달이 다이어트하면? 반달이 돼요.', '컴퓨터가 배고프면? 바이트 먹어요.', '세상에서 가장 뜨거운 바다는? 열받아!', '바나나가 웃으면? 바나나킥!', '오리가 얼면? 언덕 오리! 얼음 땡!', '신발이 화나면? 신발끈 묶고 신발!'],
+      c: ['웃겼나요? “또”라고 말하면 하나 더 해 줄게요!', '하하, 다음 것도 들어 볼래요?', '당신도 웃긴 얘기 알면 들려줘요!', '“또”라고 해 보세요!'] },
+    { id: 'bored', re: /심심|지루|할 ?거 ?없|놀아|놀자/,
+      a: ['심심하군요! 그럼 같이 놀아요. 🎉', '지루할 땐 몸을 움직이는 게 최고예요!', '좋아요, 놀거리를 찾아봐요!', '심심할 땐 새로운 걸 해 볼 기회예요.'],
+      b: ['랜덤플레이댄스 탭에서 신나게 춤춰 볼래요?', '부곡초 퀴즈 탭에서 퀴즈 리그전에 도전해 봐요.', '“농담해줘”라고 하면 웃긴 얘기를 해 줄게요.', '친구랑 끝말잇기를 해 보는 것도 좋아요.', '우리 반 랭킹을 홈 탭에서 구경해 볼래요?'],
+      c: ['어떤 게 제일 끌려요?', '오늘은 뭐가 하고 싶어요?', '친구랑 같이 하면 두 배로 재미있어요!', '골라 봐요, 제가 응원할게요!'] },
+    { id: 'tired', re: /피곤|졸려|졸리|잠 ?와|지쳤|힘들|지친/,
+      a: ['많이 힘들었군요. 😢', '오늘 정말 고생했어요.', '피곤할 땐 쉬어야 해요.', '그런 날이 있죠.'],
+      b: ['잠깐 눈을 감고 깊게 숨을 쉬어 봐요.', '물 한 잔 마시면 한결 나아져요.', '쉬는 것도 중요한 공부예요.', '너무 힘들면 선생님이나 가족에게 꼭 말해요.', '오늘은 일찍 자면 내일 훨씬 가벼울 거예요.'],
+      c: ['오늘 뭐가 제일 힘들었어요?', '무슨 일이 있었는지 얘기해 줄래요?', '제가 들어줄게요, 편하게 말해요.', '조금이라도 기분이 나아졌으면 좋겠어요.'] },
+    { id: 'angry', re: /화나|짜증|열받|분하|억울|싸웠/,
+      a: ['많이 화가 났군요. 😤', '그런 일이 있었다니 속상했겠어요.', '짜증 나는 일이 있었나 봐요.', '억울한 마음이 들 수 있어요.'],
+      b: ['먼저 숨을 크게 세 번 쉬어 봐요.', '화가 난 마음은 나쁜 게 아니에요.', '차분해진 다음에 말하면 마음이 더 잘 전달돼요.', '믿을 수 있는 어른에게 말해 보는 것도 좋아요.', '물을 한 잔 마시면 마음이 조금 가라앉아요.'],
+      c: ['무슨 일이 있었는지 말해 줄래요?', '누구랑 있었던 일인가요?', '제가 들어줄게요.', '어떻게 하면 마음이 풀릴 것 같아요?'] },
+    { id: 'sad', re: /슬프|우울|속상|외로|눈물|울고|울었|서운/,
+      a: ['마음이 많이 안 좋았군요. 🥺', '말해 줘서 고마워요.', '그런 기분이 들 수 있어요.', '혼자 힘들었겠어요.'],
+      b: ['슬픈 마음은 시간이 지나면 조금씩 가벼워져요.', '가족이나 선생님, 친한 친구에게 이야기해 보면 좋아요.', '좋아하는 노래를 들으면 마음이 풀리기도 해요.', '울고 싶을 땐 울어도 괜찮아요.', '당신은 소중한 사람이에요.'],
+      c: ['무슨 일이 있었는지 말해 줄래요?', '지금 기분을 한마디로 말하면 뭐예요?', '곁에 이야기할 어른이 있나요?', '저는 여기서 계속 들어줄게요.'] },
+    { id: 'worry', re: /걱정|무서|불안|떨려|긴장|두려/,
+      a: ['걱정이 많군요. 😟', '떨리고 불안할 수 있어요.', '그런 마음이 들면 힘들죠.', '말해 줘서 고마워요.'],
+      b: ['걱정을 종이에 적어 보면 생각보다 작아 보여요.', '천천히 숨을 들이쉬고 내쉬어 보세요.', '준비한 만큼은 분명 잘할 수 있어요.', '혼자 끙끙대지 말고 어른에게 이야기해 봐요.', '걱정되는 일의 절반은 일어나지 않는대요.'],
+      c: ['무슨 일이 걱정되나요?', '언제 있는 일이에요?', '제일 걱정되는 한 가지만 말해 줄래요?', '같이 방법을 생각해 봐요.'] },
+    { id: 'food', re: /급식|밥|배고|점심|간식|먹|맛있|음식|메뉴|라면|치킨|피자|떡볶이/,
+      a: ['맛있는 얘기네요! 🍽️', '배고플 땐 힘이 안 나죠.', '음식 이야기는 언제나 신나요.', '급식 시간은 하루 중 가장 기다려지죠.'],
+      b: ['오늘 급식 메뉴는 “오늘 급식 뭐야?”라고 물어보면 알려 줄게요.', '골고루 먹으면 키도 쑥쑥 커요.', '식사 전에는 손 씻기, 잊지 말아요.', '천천히 꼭꼭 씹어 먹으면 소화가 잘돼요.', '알레르기가 있다면 식단표 번호를 꼭 확인하세요.'],
+      c: ['제일 좋아하는 음식은 뭐예요?', '싫어하는 급식 반찬도 있어요?', '오늘 점심은 뭘 먹고 싶어요?', '최고의 간식은 뭐라고 생각해요?'] },
+    { id: 'exam', re: /시험|평가|단원|받아쓰기/,
+      a: ['시험이 다가오나 봐요! 📝', '시험은 누구나 떨려요.', '준비하느라 고생이 많아요.', '시험 이야기군요.'],
+      b: ['틀린 문제만 따로 모아 다시 풀어 보세요.', '시험 전날엔 일찍 자는 게 최고의 공부예요.', '25분 집중하고 5분 쉬는 방법을 써 보세요.', '아는 문제부터 풀면 마음이 편해져요.', '결과보다 노력한 시간이 더 소중해요.'],
+      c: ['어떤 과목이 제일 걱정이에요?', '언제 시험이에요?', '부곡초 퀴즈 탭에서 연습해 볼래요?', '당신은 이미 잘하고 있어요!'] },
+    { id: 'study', re: /공부|수학|영어|국어|과학|사회|숙제|문제|책|수업|단어|학교|암기|외우/,
+      a: ['공부 이야기군요! 📚', '배우는 건 멋진 일이에요.', '숙제 하느라 애쓰고 있군요.', '학교 얘기네요.'],
+      b: ['정답을 바로 보기보다 먼저 스스로 생각해 보면 오래 기억돼요.', '모르는 문제는 어디까지 알겠는지 말해 주면 힌트를 줄게요.', '어려운 건 쉬운 것부터 차근차근 풀면 돼요.', '배운 걸 친구에게 설명해 보면 이해가 더 깊어져요.', '틀리는 건 배우고 있다는 증거예요.'],
+      c: ['어떤 과목이 제일 재미있어요?', '지금 어려운 게 뭐예요?', '계산 문제는 “12 × 34 계산해줘”처럼 물어봐 줘요!', '부곡초 퀴즈 탭도 한번 해 봐요.'] },
+    { id: 'friend', re: /친구|짝꿍|왕따|사이좋|다퉜|친해/,
+      a: ['친구 이야기군요! 👫', '친구는 정말 소중하죠.', '친구 사이에는 그런 일이 있을 수 있어요.', '좋은 친구가 있다는 건 큰 행복이에요.'],
+      b: ['먼저 “미안해”나 “고마워”라고 말하는 건 정말 용기 있는 일이에요.', '서로 이야기를 끝까지 들어 주면 오해가 풀려요.', '힘든 일이 있으면 선생님께 꼭 말해 주세요.', '친구가 되려면 먼저 웃으면서 인사해 보세요.', '다툼은 사이가 더 깊어지는 계기가 되기도 해요.'],
+      c: ['친한 친구랑 뭐 하고 놀아요?', '무슨 일이 있었는지 말해 줄래요?', '그 친구의 좋은 점은 뭐예요?', '오늘 친구에게 뭐라고 말해 볼래요?'] },
+    { id: 'teacher', re: /선생님|담임/,
+      a: ['선생님 이야기군요! 👩‍🏫', '선생님은 여러분을 늘 응원하고 계세요.', '선생님께 말씀드리는 건 좋은 방법이에요.', '선생님이 궁금하군요.'],
+      b: ['모르는 건 선생님께 편하게 여쭤봐도 돼요.', '힘든 일이 있으면 가장 먼저 선생님께 이야기해 보세요.', '저는 선생님을 대신하지는 못하지만 곁에서 도울게요.', '이 포털은 선생님이 우리를 위해 만들어 주셨어요.', '감사한 마음을 전하면 선생님도 힘이 나요.'],
+      c: ['선생님께 하고 싶은 말이 있어요?', '무슨 일인지 말해 줄래요?', '선생님께 어떻게 말하면 좋을지 같이 생각해 봐요.', '오늘 선생님께 인사 드렸나요?'] },
+    { id: 'weather', re: /날씨|우산|기온|미세먼지|비가|비 ?와|비 ?오|눈 ?와|눈이|바람|더워|추워|춥|맑|흐림|폭염|장마/,
+      a: ['날씨 이야기네요! 🌤️', '날씨는 하루를 정하는 중요한 소식이죠.', '오늘 날씨가 궁금하군요.', '날씨에 따라 기분도 달라져요.'],
+      b: ['홈 탭에서 오늘의 날씨를 볼 수 있어요.', '비 올 것 같으면 우산을 꼭 챙기세요.', '더운 날엔 물을 자주 마셔요.', '추운 날엔 겹쳐 입으면 따뜻해요.', '미세먼지가 심하면 마스크를 써요.'],
+      c: ['오늘 어떤 날씨였으면 좋겠어요?', '제일 좋아하는 계절은 뭐예요?', '밖에서 뭐 하고 놀고 싶어요?', '비 오는 날 좋아해요?'] },
+    { id: 'money', re: /돈|은행|저축|용돈|자산|이자|월급|통장|화폐|저금|적금|예금/,
+      a: ['돈 이야기군요! 💰', '돈을 모으는 건 멋진 습관이에요.', '저축 이야기네요.', '경제 공부를 하고 있군요.'],
+      b: ['은행 관리와 자산 관리 탭에서 우리 반 금액을 볼 수 있어요.', '사고 싶은 게 생기면 일주일 뒤에도 필요한지 생각해 봐요.', '쓰기, 모으기, 나누기를 균형 있게 하면 좋아요.', '이자는 시간이 지나면 돈이 늘어나는 원리예요.', '빌린 돈은 약속한 날짜에 꼭 갚는 게 신뢰예요.'],
+      c: ['돈을 모아서 뭐 하고 싶어요?', '학생 이름과 함께 “자산 얼마야?”라고 물어보세요!', '가장 갖고 싶은 건 뭐예요?', '저축 목표를 세워 볼래요?'] },
+    { id: 'dance', re: /춤|댄스|노래|음악|케이팝|k-?pop|아이돌|리듬|안무/i,
+      a: ['음악 이야기군요! 🎵', '춤추면 기분이 확 좋아져요.', '노래 좋아하는군요!', '리듬을 타 볼까요?'],
+      b: ['랜덤플레이댄스 탭에서 음악을 올리고 바로 춤출 수 있어요.', '시작 전에 스트레칭하면 다치지 않아요.', '틀려도 즐기면 그게 최고예요.', '친구랑 같이 추면 두 배로 신나요.', '어려운 안무는 조금씩 나눠서 익혀 봐요.'],
+      c: ['요즘 제일 좋아하는 노래는 뭐예요?', '좋아하는 가수가 있어요?', '어떤 춤이 제일 재미있어요?', '다 같이 춤춰 볼까요?'] },
+    { id: 'game', re: /게임|놀이|랭킹|리그|승부|점수|레벨/,
+      a: ['게임 이야기군요! 🎮', '경쟁하는 건 짜릿하죠.', '랭킹 도전, 멋져요!', '놀이는 언제나 신나요.'],
+      b: ['부곡초 퀴즈 탭에서 퀴즈 리그전에 도전해 볼 수 있어요.', '이기는 것보다 즐기는 게 더 중요해요.', '정해 둔 시간만 하면 더 오래 재미있게 놀 수 있어요.', '눈이 피로하면 먼 곳을 보면서 쉬어 줘요.', '규칙을 미리 정하면 다툼이 줄어요.'],
+      c: ['제일 좋아하는 게임은 뭐예요?', '지금 몇 등이에요?', '친구랑 같이 하는 게 좋아요, 혼자가 좋아요?', '한번 퀴즈에 도전해 볼래요?'] },
+    { id: 'space', re: /우주|은하|행성|태양|지구|화성|목성|금성|수성|블랙홀|로켓|혜성|토성|별자리|보름달|천문/,
+      a: ['우주 이야기군요! 🚀', '우주는 신기한 게 가득해요.', '우와, 별과 행성 이야기네요.', '우주에 관심이 있군요!'],
+      b: G_INTENTS.space.b,
+      c: ['우주에서 제일 가 보고 싶은 곳은 어디예요?', '밤하늘의 별을 본 적 있어요?', '우주비행사가 되고 싶어요?', '또 궁금한 우주 이야기가 있나요?'] },
+    { id: 'animal', re: /강아지|고양이|동물|토끼|햄스터|공룡|물고기|펭귄|호랑이|사자/,
+      a: ['동물 이야기군요! 🐶', '동물은 정말 귀여워요.', '와, 동물 좋아해요?', '동물 이야기는 언제나 재미있어요.'],
+      b: ['저는 직접 만질 수는 없지만 이야기는 듣고 싶어요.', '동물을 사랑하는 마음은 생명을 소중히 여기는 마음이에요.', '동물도 우리처럼 보살핌이 필요해요.', '길에서 만난 동물은 함부로 만지지 않는 게 안전해요.', '공룡은 아주 오래전에 살던 동물이라 화석으로 알 수 있어요.'],
+      c: ['제일 좋아하는 동물은 뭐예요?', '키우고 있는 동물이 있어요?', '키우고 싶은 동물이 있어요?', '그 동물의 어떤 점이 좋아요?'] },
+    { id: 'crush', re: /좋아하는 ?(애|사람|친구)|짝사랑|고백|연애/,
+      a: ['어머, 두근두근하겠어요! 💗', '누군가를 좋아하는 마음은 소중해요.', '마음이 콩닥콩닥하죠?', '그런 이야기를 해 줘서 고마워요.'],
+      b: ['그 마음은 비밀로 간직해도 괜찮아요.', '친구로서 먼저 친해지는 게 좋은 시작이에요.', '상대방의 마음도 존중해 주세요.', '용기 내서 인사부터 건네 보면 어떨까요?', '지금은 친구들과 즐겁게 지내는 것도 정말 중요해요.'],
+      c: ['요즘 기분이 어때요?', '그 친구의 어떤 점이 좋아요?', '무슨 일인지 천천히 말해 줘요.', '응원할게요!'] },
+    { id: 'react', re: /^(ㅋ+|ㅎ+|ㅇㅇ|응|네|넹|웅|아니|ㄴㄴ|헐|와|오|음|흠|ㅠ+|ㅜ+)[!?~. ]*$/,
+      a: ['하하, 그렇군요! 😄', '오, 그래요?', '음음, 알겠어요.', '헤헤, 좋아요.'],
+      b: ['더 얘기해 줄래요?', '계속 이야기해 봐요.', '재미있는 일이 있었나 봐요.', '저는 계속 듣고 있어요.', '무슨 생각 중이에요?'],
+      c: ['오늘 제일 기억에 남는 일은 뭐예요?', '궁금한 걸 물어봐도 좋아요!', '“심심해”라고 해 보세요, 놀거리를 알려 줄게요.', '편하게 말해요!'] }
+  ];
+  const G_Q = { id: 'q',
+    a: ['‘{k}’ 궁금하군요!', '오, ‘{k}’에 대한 질문이네요.', '‘{k}’라… 좋은 질문이에요!', '‘{k}’ 이야기가 나왔네요.'],
+    b: ['지금은 인터넷 AI가 연결돼 있지 않아서 자세한 설명은 어려워요.', '저는 지금 간단한 대화 모드라서 정확한 정보를 찾아 주지는 못해요.', '아는 척하면 안 되니까 솔직하게 말할게요, 지금은 잘 몰라요.', '이건 제가 정확히 답하기 어려운 내용이에요.'],
+    c: ['선생님께 여쭤보거나 책, 사전에서 찾아보면 좋아요. 알게 되면 저한테도 알려 주세요!', '친구들과 같이 찾아보면 더 재미있어요. 찾은 걸 들려줄래요?', '선생님이 AI 연결을 켜 주시면 더 자세히 대답할 수 있어요.', '끝까지 찾아보는 건 정말 멋진 습관이에요!'] };
+  const G_S = { id: 's',
+    a: ['‘{k}’ 이야기군요!', '오, ‘{k}’요?', '아하, ‘{k}’ 이야기였군요.', '‘{k}’라니 흥미로워요!'],
+    b: ['좀 더 들려줄래요?', '어떤 점이 제일 마음에 들었어요?', '그 이야기가 더 궁금해요.', '그래서 어떻게 됐어요?'],
+    c: ['저는 퀴즈나 계산, 오늘 급식 얘기도 잘해요.', '같이 얘기하다 보면 재미있는 게 떠오를지도 몰라요.', '“심심해”라고 말해 보세요. 놀거리를 알려 드릴게요!', '편하게 이어서 얘기해 줘요.'] };
+  const G_CAP = G_CHAT.concat([G_Q, G_S]).reduce((sum, s) => sum + s.a.length * s.b.length * s.c.length, 0);
+  let gLastSig = {};
+  function gChat(text) {
+    const t = text.trim();
+    for (const it of G_CHAT) if (it.re.test(t)) return gBuildChat(it, text);
+    const q = /\?|？|왜|어떻게|뭐|무엇|누구|언제|어디|얼마|알려|궁금|인가요|일까|할까/.test(t);
+    return gBuildChat(q ? G_Q : G_S, text);
+  }
+  function gBuildChat(it, text) {
+    const k = gKeyword(text, '그것');
+    let out = '';
+    for (let n = 0; n < 4; n++) {
+      out = gPick(it.a) + ' ' + gPick(it.b) + '\n' + gPick(it.c);
+      if (out !== gLastSig[it.id]) break;
+    }
+    gLastSig[it.id] = out;
+    return out.replace(/\{k\}/g, k);
   }
 
   /* ---- 실제 데이터로 답하는 기능들 ---- */
@@ -1126,11 +1258,11 @@
   const AI_KEY_STORE = 'class44_ai_key', AI_PROXY_STORE = 'class44_ai_proxy', AI_USAGE_STORE = 'class44_ai_usage';
   const AI_MODEL = 'claude-haiku-5-5';
   const AI_DAILY_LIMIT = 150;     // 기기당 하루 질문 제한 (비용 보호)
-  const AI_MAX_HISTORY = 12;      // 대화 맥락으로 보낼 최근 메시지 수
+  const AI_MAX_HISTORY = 8;       // 대화 맥락으로 보낼 최근 메시지 수
   let gHistory = [];
 
   const AI_PROV_STORE = 'class44_ai_provider', AI_GKEY_STORE = 'class44_ai_gkey', AI_GMODEL_STORE = 'class44_ai_gmodel';
-  const AI_GMODEL_DEFAULT = 'gemini-flash-latest';
+  const AI_GMODEL_DEFAULT = 'gemini-flash-lite-latest', AI_GMODEL_FALLBACK = 'gemini-flash-latest';
   function aiCfg() {
     let key = '', proxy = '', prov = '', gkey = '', gmodel = '';
     try {
@@ -1148,7 +1280,7 @@
   function aiSystem() {
     const d = new Date(), names = ['일', '월', '화', '수', '목', '금', '토'];
     return '너는 "AI GALAXY"라는 이름의 학급 포털 도우미야. 대화 상대는 초등학교 4학년 학생들이야.\n' +
-      '- 쉽고 친절한 존댓말(해요체)로, 보통 2~4문장으로 짧게 답해. 어려운 말은 쉽게 풀어 설명해.\n' +
+      '- 쉽고 친절한 존댓말(해요체)로, 보통 2~3문장으로 아주 짧게 답해. 어려운 말은 쉽게 풀어 설명해.\n' +
       '- 숙제나 문제의 정답만 알려주기보다 힌트와 풀이 과정을 함께 알려줘.\n' +
       '- 욕설, 폭력·성적인 내용, 위험한 행동, 개인정보(이름·전화번호·주소 등) 요구에는 정중히 거절하고 어른과 상의하도록 안내해.\n' +
       '- 학생이 힘들어 보이면 따뜻하게 공감하고 선생님이나 보호자에게 이야기하도록 권해.\n' +
@@ -1200,9 +1332,10 @@
     return 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) +
       (stream ? ':streamGenerateContent?alt=sse' : ':generateContent');
   }
+  let aiGem = { model: '', think: true };   // 한 번 성공한 모델/설정을 기억해서 다음 요청은 바로 보내요
   function aiGeminiFetch(url, key, body) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 30000);
+    const timer = setTimeout(() => ctrl.abort(), 20000);
     return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal: ctrl.signal })
       .then(res => { clearTimeout(timer); return res; }, err => { clearTimeout(timer); throw err; });
   }
@@ -1210,13 +1343,23 @@
     const c = aiCfg();
     let msgs = gHistory.slice(-AI_MAX_HISTORY);
     while (msgs.length && msgs[0].role !== 'user') msgs.shift();
-    const body = {
-      systemInstruction: { parts: [{ text: aiSystem() }] },
-      contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-      generationConfig: { maxOutputTokens: 1500, temperature: 0.7 }
+    const contents = msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+    const mk = think => {
+      const gc = { maxOutputTokens: think ? 400 : 1000, temperature: 0.7 };
+      if (think) gc.thinkingConfig = { thinkingBudget: 0 };   // 생각 시간 끄기 → 훨씬 빨라져요
+      return { systemInstruction: { parts: [{ text: aiSystem() }] }, contents, generationConfig: gc };
     };
-    const res = await aiGeminiFetch(aiGeminiURL(c.gmodel, true), c.gkey, body);
-    if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; throw e; }
+    let model = aiGem.model || c.gmodel, res = null;
+    for (let n = 0; n < 4; n++) {
+      res = await aiGeminiFetch(aiGeminiURL(model, true), c.gkey, mk(aiGem.think));
+      if (res.ok) break;
+      let txt = ''; try { txt = await res.text(); } catch (e) {}
+      if (res.status === 400 && aiGem.think && /thinking/i.test(txt)) { aiGem.think = false; continue; }
+      if (res.status === 404 && model === AI_GMODEL_DEFAULT) { model = AI_GMODEL_FALLBACK; continue; }
+      const e = new Error('HTTP ' + res.status); e.status = res.status; throw e;
+    }
+    if (!res || !res.ok) { const e = new Error('HTTP ' + (res ? res.status : 0)); e.status = res ? res.status : 0; throw e; }
+    aiGem.model = model;
     const reader = res.body.getReader(), dec = new TextDecoder();
     let buf = '', full = '', blocked = false;
     for (;;) {
@@ -1255,7 +1398,14 @@
     if (s) return 'AI 연결에 문제가 생겼어요. (오류 ' + s + ')';
     return '인터넷 연결을 확인해 주세요.';
   }
+  function gSub() {
+    const el = document.getElementById('galaxySub');
+    if (!el) return;
+    el.innerHTML = '질문 · 계산 · 날짜 · 급식 · 학급 자산까지 물어보세요. ' +
+      (aiReady() ? '<b>AI 연결됨</b> · 자유롭게 대화해요' : '준비된 대화 패턴 <b>' + G_CAP.toLocaleString('ko-KR') + '</b>가지');
+  }
   function gFoot() {
+    gSub();
     const el = document.getElementById('galaxyFoot');
     if (!el) return;
     const c = aiCfg();
@@ -1273,7 +1423,7 @@
     if (gHistory.length > 40) gHistory = gHistory.slice(-40);
   }
   function gOffline(text, note) {
-    return { text: gCompose(text, gIntent(text)), tag: note };
+    return { text: gChat(text), tag: note };
   }
   async function gAI(text) {
     const row = gTyping(), bub = row.querySelector('.g-bub'), log = document.getElementById('galaxyLog');
@@ -1342,12 +1492,15 @@
       if (prov === 'gemini') { localStorage.setItem(AI_GKEY_STORE, gkey); localStorage.setItem(AI_GMODEL_STORE, gmodel); }
       else { localStorage.setItem(AI_KEY_STORE, key); localStorage.setItem(AI_PROXY_STORE, proxy); }
     } catch (e) {}
+    aiGem = { model: '', think: true };
     msg.className = 'g-modal-msg'; msg.textContent = '연결 테스트 중...';
     try {
       let res;
       if (prov === 'gemini') {
-        res = await aiGeminiFetch(aiGeminiURL(gmodel || AI_GMODEL_DEFAULT, false), gkey,
-          { contents: [{ role: 'user', parts: [{ text: '안녕이라고만 답해줘' }] }], generationConfig: { maxOutputTokens: 200 } });
+        const tb = { contents: [{ role: 'user', parts: [{ text: '안녕이라고만 답해줘' }] }], generationConfig: { maxOutputTokens: 200 } };
+        const first = gmodel || AI_GMODEL_DEFAULT;
+        res = await aiGeminiFetch(aiGeminiURL(first, false), gkey, tb);
+        if (res.status === 404 && first === AI_GMODEL_DEFAULT) res = await aiGeminiFetch(aiGeminiURL(AI_GMODEL_FALLBACK, false), gkey, tb);
       } else {
         res = await aiRequest({ model: AI_MODEL, max_tokens: 20, messages: [{ role: 'user', content: '안녕이라고만 답해줘' }] });
       }
@@ -1405,7 +1558,6 @@
   function initGalaxy() {
     if (!gInit) {
       gInit = true;
-      document.getElementById('galaxyCap').textContent = G_CAP.toLocaleString('ko-KR');
       const chips = document.getElementById('galaxyChips');
       G_CHIPS.forEach(t => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'g-chip'; b.textContent = t;
