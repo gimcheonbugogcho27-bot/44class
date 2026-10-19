@@ -352,6 +352,15 @@
   .p-wait i:nth-child(2) { animation-delay: .15s; } .p-wait i:nth-child(3) { animation-delay: .3s; }
   .p-msg { font-size: 14px; line-height: 1.7; }
   .p-msg.err { color: #fecaca; }
+  .p-gwrap { background: #fff; border-color: #fff; color: #202124; padding: 10px; min-height: 120px; }
+  .p-gwrap[hidden] { display: none; }
+  .p-gload { padding: 24px; text-align: center; font-size: 14px; color: #5f6368; }
+  .portal.p-gmode .p-form, .portal.p-gmode .p-chips, .portal.p-gmode #portalHistCard { display: none; }
+  .p-bwrap { padding: 14px; }
+  .p-bwrap[hidden] { display: none; }
+  .p-bopen { margin-top: 0; padding: 6px 12px; font-size: 12.5px; }
+  .p-bframe { height: min(62vh, 560px); min-height: 360px; border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid rgba(255, 255, 255, 0.35); }
+  .portal .p-bframe iframe { position: static; display: block; inset: auto; width: 100%; height: 100%; border: 0; background: #fff; }
   .p-foot { text-align: center; font-size: 11.5px; color: rgba(255, 255, 255, 0.7); }
   .p-hist-clear { padding: 3px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
   .p-hist-clear:hover { background: rgba(255, 255, 255, 0.3); }
@@ -563,12 +572,26 @@
           <div class="p-modes" id="portalModes" hidden>
             <button type="button" class="p-mode on" data-mode="ai">🤖 AI 요약</button>
             <button type="button" class="p-mode" data-mode="web">🌐 웹 결과</button>
+            <button type="button" class="p-mode" data-mode="google">🔎 구글 검색창</button>
+            <button type="button" class="p-mode" data-mode="browser">🌐 구글 브라우저</button>
           </div>
         </div>
         <div class="p-chips" id="portalChips"></div>
       </div>
 
       <div id="portalResult" aria-live="polite"></div>
+
+      <div class="hcard p-gwrap" id="portalGoogle" hidden>
+        <div id="portalGoogleBox"><div class="p-gload">구글 검색창을 불러오는 중...</div></div>
+      </div>
+
+      <div class="hcard p-bwrap" id="portalBrowser" hidden>
+        <div class="h-head"><span>🌐 44포털 브라우저</span><a class="p-more p-bopen" id="portalBrowserOpen" href="https://www.google.com" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a></div>
+        <div class="p-bframe">
+          <iframe id="portalBrowserFrame" title="44포털 브라우저 (구글 검색)" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+        <div class="p-tag">구글 검색 기반 브라우저예요. 화면이 비어 있거나 "연결을 거부했습니다"가 보이면 <b>새 탭에서 열기</b>를 눌러 주세요.</div>
+      </div>
 
       <div class="hcard" id="portalHistCard" hidden>
         <div class="h-head"><span>🕘 최근 검색</span><button type="button" class="p-hist-clear" id="portalHistClear">모두 지우기</button></div>
@@ -585,15 +608,15 @@
         <label for="ptGKey">Google Gemini API 키 (Google 검색 연동)</label>
         <input type="password" id="ptGKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
 
-        <label for="ptCseKey">Custom Search API 키 (선택 · 웹 결과용)</label>
+        <label for="ptCseKey">Custom Search API 키 (선택 · 신규 발급 불가)</label>
         <input type="password" id="ptCseKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
 
-        <label for="ptCseCx">검색엔진 ID (cx) (선택)</label>
+        <label for="ptCseCx">검색엔진 ID (cx) · 🔎 구글 검색창용 (API 키 불필요)</label>
         <input type="text" id="ptCseCx" placeholder="예: a1b2c3d4e5f6g7h8i" autocomplete="off" spellcheck="false">
 
         <div class="g-modal-note">
           ① <b>Gemini 키</b>는 AI GALAXY와 같은 키를 함께 써요. 키가 하나만 있으면 <b>AI 요약 검색</b>이 바로 됩니다. (aistudio.google.com/apikey)<br>
-          ② <b>Custom Search 키·cx</b>를 넣으면 구글 <b>웹 결과 목록</b> 모드가 생겨요. (programmablesearchengine.google.com)<br>
+          ② <b>검색엔진 ID(cx)</b>만 넣으면 <b>🔎 구글 검색창</b>이 포털 안에 떠요. API 키는 필요 없어요. (programmablesearchengine.google.com에서 "검색할 사이트" 방식으로 만들기)<br>③ Custom Search 키는 신규 발급이 막혀 있어서 비워 두셔도 돼요.<br>
           키는 이 기기의 브라우저에만 저장돼요. (키 삭제 시 AI GALAXY의 Gemini 키도 함께 지워져요.)
         </div>
         <div class="g-modal-msg" id="ptCfgMsg" role="status"></div>
@@ -2025,6 +2048,11 @@
      키는 이 기기의 localStorage에만 저장돼요. */
   const PT_CSEKEY = 'class44_portal_cse_key', PT_CSECX = 'class44_portal_cse_cx';
   const PT_HIST = 'class44_portal_history', PT_USAGE = 'class44_portal_usage', PT_LIMIT = 100;
+  // ★ 여기에 Gemini API 키(AIza...)를 한 번만 붙여 넣으면, 모든 기기에서 설정 없이 바로 검색돼요.
+  //   (키를 넣지 않으면 선생님이 기기마다 ⚙️ 검색 설정에서 저장해야 해요)
+  const PT_DEFAULT_GKEY = '';
+  // ★ 구글 검색창(Programmable Search Engine)의 검색엔진 ID(cx)를 넣으면 포털 안에 구글 검색창이 떠요. (API 키 불필요)
+  const PT_DEFAULT_CX = '';
   const PT_CHIPS = [
     ['🌍 지구는 왜 둥글까?', '지구는 왜 둥글까?'],
     ['🦕 공룡은 왜 멸종했을까?', '공룡은 왜 멸종했을까?'],
@@ -2042,7 +2070,8 @@
     const c = aiCfg();
     let ck = '', cx = '';
     try { ck = (localStorage.getItem(PT_CSEKEY) || '').trim(); cx = (localStorage.getItem(PT_CSECX) || '').trim(); } catch (e) {}
-    return { gkey: c.gkey, gmodel: c.gmodel, cseKey: ck, cx: cx, cse: !!(ck && cx) };
+    cx = cx || PT_DEFAULT_CX.trim();
+    return { gkey: c.gkey || PT_DEFAULT_GKEY.trim(), gmodel: c.gmodel, cseKey: ck, cx: cx, cse: !!(ck && cx) };
   }
   function ptUsed() { const u = readJSON(PT_USAGE, null); return u && u.d === aiToday() ? (Number(u.n) || 0) : 0; }
   function ptBump() { try { localStorage.setItem(PT_USAGE, JSON.stringify({ d: aiToday(), n: ptUsed() + 1 })); } catch (e) {} }
@@ -2183,6 +2212,8 @@
     ptAddHist(q);
     const c = ptCfg();
     const web = ptMode === 'web' && c.cse;
+    if (ptMode === 'google' && c.cx) { await ptSearchGoogle(q); return; }
+    if (ptMode === 'browser') { ptOpenBrowser(q); return; }
     if (!web && !c.gkey) {
       ptShow('<div class="hcard"><div class="p-msg">🔌 아직 검색이 연결되지 않았어요.<br>' +
         (role === 'member' ? '오른쪽 위 <b>⚙️ 검색 설정</b>에서 Google(Gemini) API 키를 저장하면 바로 쓸 수 있어요.' : '선생님께 검색 연결을 부탁해 보세요.') +
@@ -2219,16 +2250,72 @@
     ptEl('portalHist').innerHTML = h.map(x => '<button type="button" class="p-chip" data-q="' + ptAttr(x) + '">' + hEsc(x) + '</button>').join('');
   }
 
+  /* 🔎 구글 검색창 : Google Programmable Search Element를 포털 안에 직접 띄워요 (google.com 자체는 iframe 삽입이 막혀 있어요) */
+  let ptGLoaded = null;
+  function ptGoogleEl() { try { return window.google.search.cse.element.getElement('ptGcse'); } catch (e) { return null; } }
+  function ptLoadGoogle(cx) {
+    if (ptGLoaded) return ptGLoaded;
+    ptGLoaded = new Promise((res, rej) => {
+      ptEl('portalGoogleBox').innerHTML = '<div class="gcse-search" data-gname="ptGcse" data-linkTarget="_blank" data-safeSearch="active"></div>';
+      const s = document.createElement('script');
+      s.async = true; s.src = 'https://cse.google.com/cse.js?cx=' + encodeURIComponent(cx);
+      s.onerror = () => { ptGLoaded = null; rej(new Error('load')); };
+      s.onload = () => {
+        let n = 0;
+        const t = setInterval(() => {
+          if (ptGoogleEl()) { clearInterval(t); res(); }
+          else if (++n > 50) { clearInterval(t); ptGLoaded = null; rej(new Error('timeout')); }
+        }, 100);
+      };
+      document.head.appendChild(s);
+    });
+    return ptGLoaded;
+  }
+  async function ptOpenGoogle() {
+    ptEl('portalResult').innerHTML = '';
+    ptEl('portalGoogle').hidden = false;
+    try { await ptLoadGoogle(ptCfg().cx); }
+    catch (e) {
+      ptEl('portalGoogle').hidden = true;
+      ptShow('<div class="hcard"><div class="p-msg err">⚠️ 구글 검색창을 불러오지 못했어요. 검색엔진 ID(cx)를 확인하거나 광고 차단 기능을 꺼 보세요.</div>' +
+        '<a class="p-more" href="https://www.google.com" target="_blank" rel="noopener noreferrer">구글 열기 ↗</a></div>');
+    }
+  }
+  async function ptSearchGoogle(q) {
+    await ptOpenGoogle();
+    const el = ptGoogleEl();
+    if (el) el.execute(q);
+  }
+
+  /* 🌐 44포털 브라우저 : 구글 검색 결과를 iframe으로 띄워요 (igu=1) */
+  function ptBrowserURL(q) { return 'https://www.google.com/search?' + (q ? 'q=' + encodeURIComponent(q) + '&' : '') + 'igu=1'; }
+  function ptOpenBrowser(q) {
+    const fr = ptEl('portalBrowserFrame');
+    ptEl('portalResult').innerHTML = '';
+    ptEl('portalBrowser').hidden = false;
+    if (q || !fr.getAttribute('src')) fr.src = ptBrowserURL(q);
+    const cur = q || ptEl('portalInput').value.trim();
+    ptEl('portalBrowserOpen').href = cur ? ptGoogleURL(cur) : 'https://www.google.com';
+  }
+
   function ptModesUI() {
     const c = ptCfg();
-    if (c.cse && !c.gkey) ptMode = 'web'; else if (!c.cse) ptMode = 'ai';
+    const a = [];
+    if (c.gkey) a.push('ai');
+    if (c.cse) a.push('web');
+    if (c.cx) a.push('google');
+    a.push('browser');   // 키 없이도 쓸 수 있는 구글 브라우저(iframe)
+    if (a.length && a.indexOf(ptMode) < 0) ptMode = a[0];
     const box = ptEl('portalModes');
-    box.hidden = !(c.cse && c.gkey);
-    box.querySelectorAll('.p-mode').forEach(b => b.classList.toggle('on', b.dataset.mode === ptMode));
+    box.hidden = a.length < 2;
+    box.querySelectorAll('.p-mode').forEach(b => { b.hidden = a.indexOf(b.dataset.mode) < 0; b.classList.toggle('on', b.dataset.mode === ptMode); });
+    ptEl('frame-portal').classList.toggle('p-gmode', ptMode === 'google');
+    if (ptMode === 'google') ptOpenGoogle(); else ptEl('portalGoogle').hidden = true;
+    if (ptMode === 'browser') ptOpenBrowser(); else ptEl('portalBrowser').hidden = true;
   }
   function ptFoot() {
     const c = ptCfg();
-    ptEl('portalFoot').textContent = (c.gkey || c.cse)
+    ptEl('portalFoot').textContent = (c.gkey || c.cse || c.cx)
       ? '🟢 Google 검색 연결됨 · 오늘 ' + ptUsed() + '/' + PT_LIMIT + '회 · 이름·전화번호 같은 개인정보는 검색하지 마세요.'
       : '⚪ 검색 연결 전이에요 · ' + (role === 'member' ? '⚙️ 검색 설정에서 API 키를 저장해 주세요.' : '선생님께 연결을 부탁해 주세요.');
   }
@@ -2254,7 +2341,7 @@
     } catch (e) { return ptCfgMsg('이 브라우저에서는 키를 저장할 수 없어요.', false); }
     ptGem = { model: '', think: true };
     const c = ptCfg();
-    if (!c.gkey && !c.cse) return ptCfgMsg('Gemini API 키(또는 Custom Search 키 + cx)를 입력해 주세요.', false);
+    if (!c.gkey && !c.cse && !c.cx) return ptCfgMsg('Gemini API 키 또는 검색엔진 ID(cx)를 입력해 주세요.', false);
     if (c.cseKey && !c.cx) return ptCfgMsg('Custom Search를 쓰려면 검색엔진 ID(cx)도 함께 필요해요.', false);
     ptCfgMsg('연결을 확인하는 중이에요...', true);
     const out = []; let bad = false;
@@ -2275,6 +2362,7 @@
         out.push('✅ 웹 결과(Custom Search) 연결 완료');
       } catch (e) { bad = true; out.push('❌ 웹 결과: ' + ptErrorMsg(e)); }
     }
+    if (c.cx) out.push('✅ 🔎 구글 검색창 사용 가능 (검색엔진 ID 저장됨)');
     ptCfgMsg(out.join('  '), !bad);
     ptModesUI(); ptFoot();
     try { gFoot(); } catch (e) {}
@@ -2292,6 +2380,7 @@
   function initPortal() {
     if (!ptInit) {
       ptInit = true;
+      if (ptCfg().cx) ptMode = 'google';
       const chips = ptEl('portalChips');
       PT_CHIPS.forEach(p => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'p-chip'; b.textContent = p[0]; b.dataset.q = p[1];
