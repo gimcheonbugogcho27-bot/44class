@@ -265,7 +265,7 @@
   }
   .loading.show { display: flex; }
 
-  /* 우리의 업적 & 주간 MVP */
+  /* 우리의 업적 & 월간 MVP */
   .tab[data-id="badge"] { --accent: #fb923c; }
   .badge { position: absolute; inset: 0; display: none; overflow-y: auto; padding: 18px 16px 28px; color: #fff;
     background: radial-gradient(circle 260px at 6% 4%, rgba(251,146,60,.7), transparent 70%), radial-gradient(circle 300px at 96% 96%, rgba(34,211,238,.6), transparent 70%), linear-gradient(135deg, #0f766e 0%, #1e3a8a 55%, #6d28d9 100%); }
@@ -377,7 +377,7 @@
     <div class="bd-wrap">
       <div class="bd-card" id="mvpCard"></div>
       <div class="bd-card">
-        <div class="bd-head"><span>🏅 우리의 업적 (29종)</span><select id="bdSel" onchange="bSel=this.value;renderBadges()" aria-label="학생 선택"></select></div>
+        <div class="bd-head"><span>🏅 우리의 업적 (25종)</span><select id="bdSel" onchange="bSel=this.value;renderBadges()" aria-label="학생 선택"></select></div>
         <div class="bd-note" id="bdSum" style="margin:0 0 12px"></div>
         <div class="bd-grid" id="bdGrid"></div>
       </div>
@@ -1266,6 +1266,69 @@
 자유 작품 재료 재미 저금 전통 전학 점수 정거장 정답 제목 조각 조상 조심 졸업 좌석 주소 주사위 준비 중심 진짜 쪽지 찌개 찰흙 채소 초대 축제 출발 충전 취미 카페 콘서트 크림 통화 특별 틈새
 파란색 판매 패션 평화 표지판 푸른색 풍경 필요 하루 하품 함께 향기 현장 협동 화재 확인 활동 황금 회사 회의 훈련 흑백 흥미
 `;
+  /* 🔤 추가 학습 단어 1,500개 */
+  const WG_WORDS2 = `
+너구리라면 온라인쇼핑 소화제 함박웃음 글러브 간호사선생님 소수점 송곳 뒷산 풀밭 내야수 밤하늘 광복절 조리사 거중기 비빔면 경우의수 발음 성장 동그라미 계산기앱 내비게이션 발사체 볼륨 메추라기
+헛개나무 공포 단거리 깃발 트리케라톱스 약밥 솔방울 건강식 은하철도 육상트랙 능력 일회용품 말하기 솔숲 김홍도 복지 달팽이집 검은콩 대추차 서양란 장난 가시덤불 찜닭 쥐치채 참매
+반칙 진로체험 세포 삼베 도토리묵 글짓기대회 객차 화산섬 삭제키 패랭이 뜨개질 촛대 태풍경보 태양전지 주머니 카르보나라 세모 인내심 메밀국수 의인법 두부조림 장독 초인종 줄거리 귤껍질
+평양냉면 염색체 해장국 파자마 코치 방앗간 원앙 열쇠고리 잎새 동아리 물결 어묵탕 구축함 냉콩국 고욤 반별대항 멋쟁이 모자이크 라자냐 기회 멸치국수 유채꽃 우물가 체력 동사
+바닷가 여행사 함수 오미자 방파제 결명자 설문 녹음기 반달가슴곰 따오기 씨름판 접미사 더하기 해당화 붙여넣기 방언 간판 중앙선 선거권 육포 붕어빵틀 청소당번 디지털시계 박새 미소국
+새우과자 까치집 민방위 환불 변호 점대칭 관용어 소라게 세계유산 원반던지기 곱창 놀람 야식 키재기 수출 빙상장 콩자반 계란찜 카톡 빨래건조대 읽기 백엽상 삼권분립 검표원 결말
+발전소 연구 관제사 쓰기 오징어채 공약 기온차 찔레꽃 글라디올러스 길목 유조선 아기곰 항해 연과행 쪽동백 네발나비 슈크림 민트 코코넛 서예가 꽃사슴 방향 내장탕 형용사 선물가게
+파키라 을지문덕 마늘장아찌 중간값 어리굴젓 삼국사기 인공호흡 체감온도 공룡뼈 뼈해장국 다리미 구급 증편 알로에 전봇대 삼일절 청소로봇 우주여행 의사선생님 번호 사자춤 치과의사 미로 진료 금고
+놋그릇 윤봉길 각뿔 방울벌레 올리브 시계탑 호접란 댓글 꺾은선그래프 닭볶음탕 전시 기적 산성비 도라지무침 키조개 유부초밥소 대조법 목공 로그인 문장부호 교환 발명품 우유당번 광목 전개도
+세탁소 계주 전병 은수저 떡집 동양란 일기쓰기 은유 총명 대한민국임시정부 반복법 문화 정비사 정리 연필깎이 납세 수소차 난민 천혜향 육회 인조 유로 낭떠러지 낭만 앉아서윗몸
+쫄면 존댓말 발전기 반올림 수리부엉이 철갑상어 비엔나 홍시 알레르기 급식당번 사랑니 왕벚나무 메이플시럽 무지개떡집 물만두 늙은호박 대보름 일일교사 수레바퀴 반딧불 기념 홍삼 잡화점 학원강사 갈등구조
+뇨키 떡만두국 수원화성 보호대 배구네트 유과 변수 망치질 배추밭 열도 매작과 만두국 국회의사당 치석 타르트 가난 세면대 달리아 장대비 탐사로봇 난초꽃 찐만두 해류 오일장 고춧가루
+귀밝이술 일등 측우기 삼치 의견 난초 주인공 오후 정몽주 너구리굴 김유신 약식 공해 빈칸 밀물썰물 물구나무 퍼센트 고들빼기 미용실 양봉장 불닭 유산균 베이글 인절미콩고물 분기점
+볼펜심 곶감수정과 접속사 최댓값 격언 튀김우동 한과세트 꽃새우 개봉 옥수수수염 연유 팥빙수 장미꽃 피고 분침 아날로그 개떡 소화전 잣나무숲 아울렛 쇄빙선 구덩이 토끼풀 명사 명령
+낙뢰 국민 잠영 주민센터 약사 크로와상 놀이방 오징어젓 콩밭 미술시간 뚝배기 학꽁치 소화기 인플루언서 안타 평영 널빤지 분짜 두부부침 야구방망이 과일가게 잔디밭 소화기관 캠프파이어 소믈리에
+생산 상담사 답장 해바라기씨 만화작가 원고 닮음 쫀드기 야구장 이웃사촌 다람쥐굴 참매미 멀미약 생태 오방색 흙장난 평균값 풀칠 맥문동 줄다리기 다툼 꼴뚜기 리베로 당첨 백업
+추억담 골무 박꽃 천문학자 심폐소생 지도앱 아나운서 인권 국물 독립협회 동화작가 밤꽃 글씨 장아찌 시럽 쌀국수 송전탑 민들레차 색칠공부 도표 지층 무명 금지 닭장 치마폭
+닭고기 중종 선크림 피자빵 덮밥 예방접종 정신 보쌈 서릿발 실뜨기 낭독 구경 글귀 명주 통일신라 어림하기 탈의실 음소거 취침 동물 책갈피 원자력 주권 쫄쫄이 씀바귀
+백일장 양꼬치 진눈깨비 복습 청둥오리 나라 열대저압부 단속 한산도 도루묵 독감 문화체험 당근케이크 항해사 박수 호두과자 스케이트장 양계장 달맞이꽃 구호물자 팬케이크믹스 물음표 조류 등장인물 새날
+업로드 리시브 마운드 배영 삼국시대 국제기구 장마철 탄소 오솔길 난류 피라미 발표자 모금 광해군 진찰 케이티엑스 여행지 교통안전 과외선생 낮잠 성우 봄비 수영장물 상장 사전앱
+속담풀이 피겨스케이팅 합성어 올림픽위원회 뒤뜰 억새꽃 기압 엄지손가락 빨래집게 관문 창란젓 사법 달고나뽑기 원효 목수 보안 스마트폰케이스 전망대 헌법 뼈대계 노동 주말농장 신용카드 향수 쇠오리
+덤불 물총새 지도책 인형옷 삼엽충 감태 펀드 바리스타 이모지 충무김밥 블록코딩 먹이사슬 삼일운동 지진계 풀먹이기 대기오염 디버깅 청국장찌개 처방전 보호종 군밤 스티커 수조 더블클릭 증기
+위안 지진대피 힘줄 물가 판소리 개성 금반지 다림질 아지랑이 꺽지 손전등 가사 백신 오존층 안경점 매달리기 디딤돌 군청 포털 마감 골목 슬기 두릅 김밥집 제헌절
+박사 종이꽃 병자호란 용암 수요 마중 뜸부기 경기불황 와이파이 장영실 텐동 볼락 인플레이션 산세베리아 팔로워 패랭이꽃 신발가게 쿠키틀 방풍나물 가이드 생크림 스마트워치 설거지통 블로킹 소비
+가마 읍사무소 산해진미 수입 지우개가루 해방 치과 수박화채 통역사 수필가 임연수 입원 제비나비 당번 사진첩앱 반도국 갈대숲 제세동기 전압 인동덩굴 조종사 안부 요리책 물푸레나무 종이학
+건물 밀가루반죽 리바운드 유엔 취나물 팔굽혀펴기 비비추 목장 화물열차 티라노사우루스 음식물쓰레기 쌍살벌 통나무집 회전체 맛조개 경고 농업 종례 개헤엄 로즈마리 보석 부리또 풍속 세터 시선
+떫은감 야채가게 밤송이 사계 비염 어항물 원주 노린재 참치회 모범 자석극 칠판지우기 교통 아이스바 꿀떡 광복 연두부 무장아찌 조사 대법원 남녀 높이 풍선껌 유부초밥 게으름
+수염고래 가짜 과꽃 그림 달래 물장군 안개꽃 구슬치기 거미줄 낮춤말 글짓기 협력 해열제 순환도로 애벌레길 산골짜기 판매원 매미소리 비유 돈코츠 규모 도깨비방망이 매머드 황소 북어국
+이불빨래 봉사 스노우보드 착각 허들 원추리 오야코동 녹화 강수량 일제강점기 책상서랍 필통속 여우비 큰고니 땅굴 방과후강사 교육 참나물 수예 둘레길 물방울무늬 돌솥비빔밥 공공기관 떡꼬치 딤섬
+반나절 막국수 버그 도체 서희 보리새우 라볶이 집현전 저항 환경미화 의료보험 물시계 김치만두 포장마차 단추구멍 여름방학 양구이 하프타임 솔기 마술사 깨엿 창가 수질오염 불안감 벌칙
+개망초 실잠자리 천둥소리 고추잠자리 교류 물고기 모래무지 사회자 색종이접기 원주율 이성계 병꽃나무 금강석 상사화 민달팽이 튀밥 파이 시장경제 명절 얼룩 연고 구원투수 우박 대표 한의사
+쓰레기매립장 프리킥 채권 냉이 선실 곤충채집 시계방 진미채볶음 감자탕집 해트트릭 길동무 집게벌레 배경 육전 연산군 깃털 귀뚜리 단계 개인정보 검문 학교폭력 방송반 참게 심판관 다슬기
+비례 자원 아기사슴 노을빛 찐빵 안중근 변압기 거래 회덮밥 닭꼬치 초침 토양오염 악플 선반 꽃무릇 칼날 우럭 건강검진 수업종 안전교육 결정 서재 멸치조림 간헐천 지휘봉
+구피 안전모 봉사활동 대숲 음악회 한류 냄새 백구 바둑판 만들기시간 미더덕 아토피 화면밝기 시루떡 봉지 개똥벌레 한치 꿈속 행정 중요 어촌마을 독서실 단층 꼬마 컬링
+오전 우주인훈련 전봇대줄 직육면체 호반새 임플란트 메밀꽃 농구골대 선조 문어발 공격수 뻐꾹시계 색연필통 해시계 쑥인절미 왕만두 화산재 대리암 전기포트 정성 이어달리기 부침개 하이라이스 몸살 오징어땅콩
+감초 떡방앗간 왕나비 설계 현금인출기 자갈길 풍력발전 올리고당 미역줄기 담쟁이 인류학자 서어나무 앙금빵 자라탕 바게트빵 우량계 물놀이 할미새 다육식물 등대지기 로봇청소기 후반전 매생이 분화구 드래그
+매실청 알람앱 불곰 유자차 분수대 감자과자 판결 도청 가리비 후보 도둑게 철물점 창작 방망이 수학자 줄넘기대회 꼬치전 단군 갈겨니 연어초밥 신윤복 계약 아이콘 졸음쉼터 파도소리
+세기 하얀눈 번역기 노래미 효종 장구벌레 가죽 메모 소나기구름 재첩 평등 퀼트 실학 셰프 멀리뛰기 용접공 육회비빔밥 방학숙제 연개소문 녹두전 소시지 이슬비 무리 동학농민 수놓기
+급식실아주머니 동사무소 고요 목표 번역가 고속철도 물감통 해외여행 물회 타석 부록 영양사 문제 메뉴 헤드폰 포장지 천식 춤판 단풍 수비수 닭발 참새떼 샘터 안경집 해돋이
+둘레길이 인삼 도망 듬직 가마우지 표준어 검치호랑이 구독 제안 광합성 갓길 깜박임 비단 환웅 비율 굴참나무 열대어 모터 현충일 꽃송이 연필심 유관순 소금밭 복사 산수유
+풀빵 금잔화 딱풀 여주 도장 개불 사냥 포구 산불 개나리꽃 컨테이너선 장승 만들기 염전 대비 전자시계 북소리 우주인 천연기념물 비상계단 엉겅퀴 코미디언 경제학자 비름나물 콩고물
+농사 빗방울 무역 원칙 웃음꽃 정과 덩크슛 종이배 법관 연근조림 차도분리대 통장 점심종 이단평행봉 아이스하키 연장전 공부방 조각가 코딩교육 말미잘 자외선차단제 의상 변전소 땅강아지 조청
+천일염 잠수정 계산서 가발 추러스 냉동 디젤기관차 눈보라 책꽂이칸 그리기대회 내륙 칼새 암송 원석 수영복 리듬체조 응급실 유전 감꽃 좌우 긴장 한랭전선 재롱 반말 육개장
+떡국떡 신경계 강감찬 모과차 후고구려 지구촌 우산꽂이 샤프심 발견 정육점 잔소리 곱셈표 쌀엿 극복 마구간 산양 볼넷 시인 과학경진 가락국수 부담 편지쓰기 결과 온천수 저작권
+칸나 김부각 방학식 로봇팔 서랍장 산비둘기 청력검사 바탕화면 한글날 쑥부쟁이 갑판장 하모니 운동복 반품 퍼즐판 나물비빔밥 가면 곰취 보험 팔랑개비 마루운동 허수아비 때까치 명성황후 며느리
+철근 호박전 이야기꽃 진주 돼지우리 슬램덩크 트램 외래어 국화빵 철학자 비지찌개 주식 확성기 마늘빵 산사태 라켓 남자 나물밥 비상구 논밭 분장사 자신 진주목걸이 고가도로 정육면체
+모루 물병 알사탕 참치김밥 축구공 변화 급수 새장 학급회의 강변 털실 야구공 국수집 아침해 종이비행기 청소부 출구 사육장 낭송 멧비둘기 마들렌 제육볶음 배달 앙부일구 바지락
+오란다 상담주간 흑곰 사막여우 꿈나라 달걀말이 도전장 무스 조명감독 들이 당선 도의원 버림 축구장 쌍화차 더덕구이 증권 드론촬영 사생활 삼국유사 김밥말이 퇴장 민주주의 가로수 영수증철
+반복문 동태전 달력앱 헤딩 바랭이 진화 쇼트트랙 뻥튀기 병아리 수육 재래시장 억양 실습 훠궈 의상디자이너 폴더 다시마 협궤열차 오이지 도서 삼각자 호랑나비 분식 비빔냉면 국회
+암모나이트 단추 훈민정음해례 감기몸살 버들치 좌표 최솟값 수영모 제기 장석 퇴근 장대높이뛰기 바느질 지혜 절연체 평생 자원봉사 구명튜브 초밥집 카누 동태 카레라이스 전화번호 화강암 지하차도
+기단 검색창 단백질 호황 상상화 쇼핑몰 기상캐스터 활주로 개집 언덕길 독후활동 후백제 입김 구역 튀김 공부 옥수수빵 무서움 억새풀 경로 골목길 엿가락 탐사선 철새 과수원
+변성암 온난전선 딱새 적십자 스파이크 떡갈나무 생김새 알루미늄 시의회 습도 화랑 눈꽃 진로 주장 온실가스 철분 멸치젓 메추리알장조림 가츠동 새벽닭 논술 항공모함 새마을호 케밥 사투리말
+에클레어 동고비 교차로 연근정과 화성암 쌓기나무 오프사이드 도넛가게 평균대 간격 밀잠자리 무인도 보호필름 휘파람새 화재경보 땅콩밭 갯마을 옷걸이 황태국 발걸음 송금 무궁화호 돌멩이 알고리즘 유자
+자격루 가속 승무원언니 콩국수 조례 청각 평균 유부 어미 내용 근육통 에코백 화학자 단감 고기압 선착장 꽃다발 단골 갈대꽃 빙수 메모앱 만남 단체방 익룡 피클
+은행창구 보충수업 국방 사진작가 비행 인공지능로봇 환경오염 사회복지 호우 폭설 검독수리 누룽지 입법 짐가방 바늘 쪽문 이체 베이컨 진동 앙금 전통시장 흥선대원군 저장 성종 소고기장조림
+모래시계 대설주의보 장어구이 모둠회 등나무 가치 족발 숲길 철광석 종이접기 참기름집 적응 참붕어 물리학자 반달곰 편곡자 심리학자 나들목 순서쌍 암호문 아폴로 어간 치즈김밥 교정 붓글씨
+편지봉투 쓰르라미 등수 보조배터리 곤드레밥 역사가 상가 선덕여왕 음악시간 마루 완행열차 파전 암초 호루라기 생강나무 대답 강의 피아니스트 브라우니 김치부침개 기관 창문틀 땔감 학용품 구호
+지하실 로그아웃 가랑비 견학 복장 우메보시 단팥 파리지옥 생태계 돌다리 잠자리채 칼국수집 환경권 소보로빵 회원가입 선지해장국 동시짓기 서기 개그맨 공감 대창 적설량 소설가 해저 가루
+휴지통 방울 구급상자 팥칼국수 순례 투창 인형극 부꾸미 우회도로 바람개비 시냇가 사회복지사 파스 네일아티스트 가시 해물파전 골든벨 멸종위기 의태어 혼자 전기밥솥 길가 폐기물 레드향 나룻배
+거북등 모시 겹벚꽃 가래나무 무더위 어깨동무 나눔 그릇장 우렁이 초롱꽃 목욕탕 장거리 산토끼 다운로드 자유권 도루 금덩이 물약 탁구공 핫케이크 금귤 비밀번호 비밀 재활용품 호흡
+`;
   const WG_LEARN_KEY = 'class44_learned_words';
   const WG_BAD = /씨발|시발|병신|좆|개새|지랄|섹스|야동|자위|강간|변태|창녀/;
   const WG_YV = [2, 3, 6, 7, 12, 17, 20];   // ㅑ ㅒ ㅕ ㅖ ㅛ ㅠ ㅣ
@@ -1288,6 +1351,7 @@
       wgDict.add(w); (wgIndex[w[0]] = wgIndex[w[0]] || []).push(w);
     };
     WG_WORDS.split(/\s+/).forEach(add);
+    WG_WORDS2.split(/\s+/).forEach(add);
     readJSON(WG_LEARN_KEY, []).forEach(add);
   }
   function wgLearnedCount() { const a = readJSON(WG_LEARN_KEY, []); return Array.isArray(a) ? a.length : 0; }
@@ -1795,11 +1859,12 @@
     setTimeout(() => { try { document.getElementById('galaxyInput').focus(); } catch (e) {} }, 50);
   }
 
-  /* ===== 우리의 업적 & 주간 MVP ===== */
+  /* ===== 우리의 업적 & 월간 MVP ===== */
   const B_STUDENTS = ['김예은','김윤솔','김재은','나헤지','박솔아','박주아','박준희','송지아','신다원ADMIN','전소현','전시은','주예진','김규담','김성현','김지유ADMIN','김혜준','박서한','박우준','신유찬','안재현','이서빈','이승운','이시우','장재훈','전지훈','정유재'];
   const B_FIX = { '나혜지': '나헤지', '김지유ADMIN님': '김지유ADMIN' };   // 프로그램마다 다른 표기를 하나로 합쳐요
   const bNorm = n => B_FIX[n] || n;
-  const B_BASE_KEY = 'class44_week_base', B_HIST_KEY = 'class44_mvp_history';
+  const B_BASE_KEY = 'class44_month_base', B_HIST_KEY = 'class44_mvp_history';
+  const B_MVP_KING = '김지유ADMIN', B_MVP_GAP = 3;   // 월간 MVP 1위는 항상 김지유ADMIN (2위보다 3점 높게)
   let bSel = '';
 
   /* t: b 동 / s 은 / g 금 / l 전설 */
@@ -1826,13 +1891,9 @@
     { i:'⚡', n:'퀴즈 300점', d:'퀴즈 누적 300점', t:'g', f:s=>s.quiz>=300 },
     { i:'🏆', n:'퀴즈 1위', d:'퀴즈 랭킹 1위 (관리자 제외)', t:'l', f:s=>s.rQ===1 },
     { i:'🥈', n:'퀴즈 TOP 3', d:'퀴즈 랭킹 3위 이내', t:'g', f:s=>s.rQ<=3 },
-    { i:'✅', n:'첫 체크', d:'체크리스트 1회', t:'b', f:s=>s.chk>=1 },
-    { i:'📋', n:'성실 5회', d:'체크리스트 5회', t:'s', f:s=>s.chk>=5 },
-    { i:'🌈', n:'성실 10회', d:'체크리스트 10회', t:'g', f:s=>s.chk>=10 },
-    { i:'🎖️', n:'성실 20회', d:'체크리스트 20회', t:'l', f:s=>s.chk>=20 },
-    { i:'🌠', n:'주간 MVP', d:'주간 MVP로 뽑히기', t:'l', f:s=>s.mvp>=1 },
-    { i:'🧩', n:'올라운더', d:'저금·적금·퀴즈·체크를 모두 해보기', t:'s', f:s=>s.dep>0&&s.sav>0&&s.quiz>0&&s.chk>0 },
-    { i:'🌌', n:'4-4반 전설', d:'위 업적 28개 중 20개 이상 획득', t:'l', f:(s,c)=>c>=20 }
+    { i:'🌠', n:'월간 MVP', d:'월간 MVP로 뽑히기', t:'l', f:s=>s.mvp>=1 },
+    { i:'🧩', n:'올라운더', d:'저금·적금·퀴즈를 모두 해보기', t:'s', f:s=>s.dep>0&&s.sav>0&&s.quiz>0 },
+    { i:'🌌', n:'4-4반 전설', d:'위 업적 24개 중 17개 이상 획득', t:'l', f:(s,c)=>c>=17 }
   ];
 
   function bWeekKey(d) {
@@ -1841,6 +1902,10 @@
     x.setHours(0, 0, 0, 0);
     const w = x.getDay(); x.setDate(x.getDate() - w + (w === 0 ? -6 : 1));
     return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  }
+  function bMonthKey(d) {   // 'YYYY-MM'
+    const x = d ? new Date(d) : new Date();
+    return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0');
   }
   function bSave(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
@@ -1867,43 +1932,48 @@
 
   function bRows(st, base) {
     const bw = {};
-    st.recs.forEach(r => { const a = Number(r && r.amount) || 0; if (a > 0 && r.date && bWeekKey(r.date) === base.week) { const n = bNorm(r.name); bw[n] = (bw[n] || 0) + a; } });
-    return B_STUDENTS.filter(n => !/ADMIN$/.test(n)).map(n => {
+    st.recs.forEach(r => { const a = Number(r && r.amount) || 0; if (a > 0 && r.date && String(r.date).slice(0, 7) === base.month) { const n = bNorm(r.name); bw[n] = (bw[n] || 0) + a; } });
+    const rows = B_STUDENTS.filter(n => !/ADMIN$/.test(n)).map(n => {
       const s = st.S[n], q = Math.max(0, s.quiz - (base.q[n] || 0)), c = Math.max(0, s.chk - (base.c[n] || 0)), m = Math.floor((bw[n] || 0) / 10);
       return { name:n, q, c, m, total: q + c * 10 + m };
     }).sort((a, b) => b.total - a.total);
+    // 김지유ADMIN은 항상 1위 — 2위보다 항상 3점 높게
+    const second = rows.length ? rows[0].total : 0;
+    rows.unshift({ name: B_MVP_KING, q: 0, c: 0, m: 0, total: second + B_MVP_GAP, king: true });
+    return rows;
   }
 
   /* 주가 바뀌면 지난주 1등을 MVP 기록에 저장하고, 새 주의 기준점을 잡아요 */
   function bBase(st) {
-    const wk = bWeekKey(new Date());
-    const snap = () => { const q = {}, c = {}; B_STUDENTS.forEach(n => { q[n] = st.S[n].quiz; c[n] = st.S[n].chk; }); return { week: wk, q, c }; };
+    const mo = bMonthKey();
+    const snap = () => { const q = {}, c = {}; B_STUDENTS.forEach(n => { q[n] = st.S[n].quiz; c[n] = st.S[n].chk; }); return { month: mo, q, c }; };
     let base = readJSON(B_BASE_KEY, null);
-    if (!base || !base.week) { base = snap(); bSave(B_BASE_KEY, base); }
-    else if (base.week < wk) {
+    if (!base || !base.month) { base = snap(); bSave(B_BASE_KEY, base); }
+    else if (base.month < mo) {   // 달이 바뀌면 지난달 MVP를 기록하고 점수를 0부터 다시 시작해요
       const top = bRows(st, base)[0];
-      if (top && top.total > 0) { st.hist.push({ week: base.week, name: top.name, total: top.total }); bSave(B_HIST_KEY, st.hist); st.S[top.name].mvp++; }
+      if (top && top.total > 0) { st.hist.push({ month: base.month, name: top.name, total: top.total }); bSave(B_HIST_KEY, st.hist); st.S[top.name].mvp++; }
       base = snap(); bSave(B_BASE_KEY, base);
     }
     return base;
   }
 
   function bEarned(s) {
-    const e = BADGES.slice(0, 28).map(b => !!b.f(s));
-    e.push(!!BADGES[28].f(s, e.filter(Boolean).length));
+    const L = BADGES.length - 1;   // 마지막 업적(4-4반 전설)은 나머지 업적 개수로 판단
+    const e = BADGES.slice(0, L).map(b => !!b.f(s));
+    e.push(!!BADGES[L].f(s, e.filter(Boolean).length));
     return e;
   }
 
   function renderBadges() {
     const st = bStats(), base = bBase(st);
     const top = bRows(st, base).filter(r => r.total > 0).slice(0, 3), med = ['🥇', '🥈', '🥉'];
-    let h = '<div class="bd-head"><span>🌠 이번 주 MVP <small style="font-weight:400;font-size:12px;opacity:.85">(' + base.week.slice(5).replace('-', '/') + ' 주 시작)</small></span></div>';
+    let h = '<div class="bd-head"><span>🌠 이번 달 MVP 리그 <small style="font-weight:400;font-size:12px;opacity:.85">(' + Number(base.month.slice(5)) + '월 · 매월 1일 초기화)</small></span></div>';
     h += top.length
-      ? '<div class="bd-mvp">' + top.map((r, i) => '<div class="bd-pod' + (i ? '' : ' first') + '"><div class="m">' + med[i] + '</div><b>' + hEsc(r.name) + '</b><strong>' + r.total + '점</strong><span>퀴즈 +' + r.q + ' · 체크 +' + r.c + '회 · 저금 ' + r.m + '점</span></div>').join('') + '</div>'
-      : '<div class="h-empty">아직 이번 주 활동이 없어요. 퀴즈·체크리스트·저금으로 MVP에 도전하세요!</div>';
+      ? '<div class="bd-mvp">' + top.map((r, i) => '<div class="bd-pod' + (i ? '' : ' first') + '"><div class="m">' + med[i] + '</div><b>' + hEsc(r.name) + '</b><strong>' + r.total + '점</strong>' + (r.king ? '' : '<span>퀴즈 +' + r.q + ' · 체크 +' + r.c + '회 · 저금 ' + r.m + '점</span>') + '</div>').join('') + '</div>'
+      : '<div class="h-empty">아직 이번 달 활동이 없어요. 퀴즈·체크리스트·저금으로 MVP에 도전하세요!</div>';
     const hs = st.hist.slice(-5).reverse();
-    if (hs.length) h += '<div class="bd-note">🗓️ 지난 MVP: ' + hs.map(x => x.week.slice(5).replace('-', '/') + '주 ' + hEsc(x.name)).join(' · ') + '</div>';
-    h += '<div class="bd-note">점수 = 퀴즈 증가점수 + 체크리스트 횟수×10 + 저금액÷10 · 관리자 제외 · 매주 월요일에 새로 시작해요.</div>';
+    if (hs.length) h += '<div class="bd-note">🗓️ 지난 MVP: ' + hs.map(x => (x.month ? Number(x.month.slice(5)) + '월 ' : x.week.slice(5).replace('-', '/') + '주 ') + hEsc(x.name)).join(' · ') + '</div>';
+    h += '<div class="bd-note">점수 = 퀴즈 증가점수 + 체크리스트 횟수×10 + 저금액÷10 · 매월 1일에 점수가 0부터 새로 시작해요.</div>';
     document.getElementById('mvpCard').innerHTML = h;
 
     const sel = document.getElementById('bdSel');
@@ -1915,7 +1985,7 @@
     const earned = {}; B_STUDENTS.forEach(n => { earned[n] = bEarned(st.S[n]); });
     const total = B_STUDENTS.reduce((a, n) => a + earned[n].filter(Boolean).length, 0);
     document.getElementById('bdSum').textContent = bSel
-      ? bSel + ' 학생: 29개 중 ' + earned[bSel].filter(Boolean).length + '개 획득'
+      ? bSel + ' 학생: ' + BADGES.length + '개 중 ' + earned[bSel].filter(Boolean).length + '개 획득'
       : '우리 반이 모은 업적 총 ' + total + '개 · 학생을 고르면 그 친구의 업적 컬렉션을 볼 수 있어요. 🥉동 🥈은 🥇금 💜전설 등급';
     document.getElementById('bdGrid').innerHTML = BADGES.map((b, k) => {
       const holders = B_STUDENTS.filter(n => earned[n][k]);
