@@ -236,6 +236,29 @@
   .g-form button:focus-visible, .g-chip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   .g-foot { flex: 0 0 auto; text-align: center; font-size: 11px; color: #6366f1; padding-bottom: 8px; }
 
+  /* AI GALAXY - 실제 AI 연결 설정 */
+  .g-head { position: relative; }
+  .g-cfg { position: absolute; right: 12px; top: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(165,180,252,.5);
+    background: rgba(99,102,241,.2); color: #e0e7ff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .g-cfg:hover { background: rgba(99,102,241,.45); }
+  .g-cfg[hidden], .g-modal[hidden] { display: none; }
+  .g-modal { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5,6,15,.78); }
+  .g-modal-card { width: 100%; max-width: 460px; max-height: 100%; overflow-y: auto; padding: 20px; border-radius: 16px; color: #e0e7ff;
+    background: #0f1235; border: 1px solid rgba(165,180,252,.45); box-shadow: 0 0 30px rgba(129,140,248,.35); }
+  .g-modal-card h3 { font-size: 18px; margin-bottom: 12px; }
+  .g-modal-card label { display: block; margin: 10px 0 4px; font-size: 12.5px; font-weight: 700; color: #a5b4fc; }
+  .g-modal-card input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(165,180,252,.45); background: rgba(15,23,42,.8); color: #fff; font: inherit; font-size: 14px; outline: none; }
+  .g-modal-card select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(165,180,252,.45); background: rgba(15,23,42,.9); color: #fff; font: inherit; font-size: 14px; outline: none; }
+  .g-modal-card select option { background: #0f1235; color: #fff; }
+  .g-modal-card input:focus { border-color: #a5b4fc; box-shadow: 0 0 8px rgba(129,140,248,.5); }
+  .g-modal-note { margin-top: 10px; font-size: 12px; line-height: 1.55; color: #c7d2fe; }
+  .g-modal-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .g-modal-row button { flex: 1 1 auto; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(165,180,252,.5); background: rgba(99,102,241,.25); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+  .g-modal-row button.primary { background: linear-gradient(135deg, #7c3aed, #db2777); border-color: #f0abfc; }
+  .g-modal-row button.danger { background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.6); color: #fecaca; }
+  .g-modal-msg { min-height: 18px; margin-top: 10px; font-size: 13px; font-weight: 700; }
+  .g-modal-msg.ok { color: #86efac; } .g-modal-msg.err { color: #fca5a5; }
+
   .loading {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
     color: #94a3b8; font-size: 14px; pointer-events: none;
@@ -382,6 +405,7 @@
   <section class="galaxy" id="frame-galaxy" role="tabpanel" aria-labelledby="tab-galaxy">
     <div class="g-head">
       <h2>🌌 AI GALAXY</h2>
+      <button type="button" class="g-cfg" id="galaxyCfgBtn" hidden aria-label="AI 연결 설정">⚙️ AI 설정</button>
       <div class="g-sub">질문 · 계산 · 날짜 · 급식 · 학급 자산까지 물어보세요. 조합 가능한 답변 <b id="galaxyCap">0</b>가지</div>
     </div>
     <div class="g-log" id="galaxyLog" aria-live="polite"></div>
@@ -391,6 +415,38 @@
       <button type="button" id="galaxySend">보내기</button>
     </div>
     <div class="g-foot" id="galaxyFoot"></div>
+    <div class="g-modal" id="galaxyCfg" hidden role="dialog" aria-modal="true" aria-labelledby="galaxyCfgTitle">
+      <div class="g-modal-card">
+        <h3 id="galaxyCfgTitle">⚙️ AI 연결 설정 (선생님 전용)</h3>
+        <label for="aiProvider">사용할 AI</label>
+        <select id="aiProvider">
+          <option value="gemini">Google Gemini (무료 키 가능)</option>
+          <option value="claude">Anthropic Claude (유료)</option>
+        </select>
+
+        <div id="aiGemBox">
+          <label for="aiGKeyInput">Gemini API 키</label>
+          <input type="password" id="aiGKeyInput" placeholder="AIza..." autocomplete="off" spellcheck="false">
+          <label for="aiGModelInput">모델 이름 (바꾸지 않아도 돼요)</label>
+          <input type="text" id="aiGModelInput" placeholder="gemini-flash-latest" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div id="aiClaudeBox" hidden>
+          <label for="aiKeyInput">Anthropic API 키</label>
+          <input type="password" id="aiKeyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+          <label for="aiProxyInput">프록시 주소 (선택 · 있으면 API 키 대신 사용)</label>
+          <input type="text" id="aiProxyInput" placeholder="https://내-서버/claude" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="g-modal-note" id="aiProvNote"></div>
+        <div class="g-modal-msg" id="aiCfgMsg" role="status"></div>
+        <div class="g-modal-row">
+          <button type="button" class="primary" id="aiCfgSave">저장 후 연결 테스트</button>
+          <button type="button" class="danger" id="aiCfgClear">키 삭제</button>
+          <button type="button" id="aiCfgClose">닫기</button>
+        </div>
+      </div>
+    </div>
   </section>
   <div class="loading" id="loading">불러오는 중...</div>
 </div>
@@ -1054,8 +1110,7 @@
     return '최고관리자 계정은 김지유ADMIN과 신다원ADMIN이에요. 은행 관리 프로그램에서는 예금·적금 한도 제한 없이 저금할 수 있고, 부곡초 퀴즈 리그전에서는 시작할 때마다 50점이 지급돼요. 자산 관리 프로그램에서는 관리자 표시가 붙어요.';
   }
 
-  function gReply(text) {
-    gCount++;
+  function gSmart(text) {
     const smart = [
       [gSafety, ''], [gMath, '계산'], [gDate, '날짜·시각'], [gMeal, '급식'], [gStudent, '학급 정보'], [gAdminInfo, '권한 안내']
     ];
@@ -1064,7 +1119,250 @@
       try { r = fn(text); } catch (e) { r = null; }
       if (r) return { text: r, tag };
     }
-    return { text: gCompose(text, gIntent(text)), tag: '' };
+    return null;
+  }
+
+  /* ===== 실제 AI 연결 (Anthropic Claude API) ===== */
+  const AI_KEY_STORE = 'class44_ai_key', AI_PROXY_STORE = 'class44_ai_proxy', AI_USAGE_STORE = 'class44_ai_usage';
+  const AI_MODEL = 'claude-haiku-5-5';
+  const AI_DAILY_LIMIT = 150;     // 기기당 하루 질문 제한 (비용 보호)
+  const AI_MAX_HISTORY = 12;      // 대화 맥락으로 보낼 최근 메시지 수
+  let gHistory = [];
+
+  const AI_PROV_STORE = 'class44_ai_provider', AI_GKEY_STORE = 'class44_ai_gkey', AI_GMODEL_STORE = 'class44_ai_gmodel';
+  const AI_GMODEL_DEFAULT = 'gemini-flash-latest';
+  function aiCfg() {
+    let key = '', proxy = '', prov = '', gkey = '', gmodel = '';
+    try {
+      key = localStorage.getItem(AI_KEY_STORE) || ''; proxy = localStorage.getItem(AI_PROXY_STORE) || '';
+      prov = localStorage.getItem(AI_PROV_STORE) || ''; gkey = localStorage.getItem(AI_GKEY_STORE) || ''; gmodel = localStorage.getItem(AI_GMODEL_STORE) || '';
+    } catch (e) {}
+    key = key.trim(); proxy = proxy.trim(); gkey = gkey.trim(); gmodel = gmodel.trim() || AI_GMODEL_DEFAULT;
+    if (prov !== 'gemini' && prov !== 'claude') prov = (key || proxy) ? 'claude' : 'gemini';
+    return { provider: prov, key, proxy, gkey, gmodel };
+  }
+  function aiReady() { const c = aiCfg(); return c.provider === 'gemini' ? !!c.gkey : !!(c.key || c.proxy); }
+  function aiToday() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function aiUsed() { const u = readJSON(AI_USAGE_STORE, null); return u && u.d === aiToday() ? (Number(u.n) || 0) : 0; }
+  function aiBump() { try { localStorage.setItem(AI_USAGE_STORE, JSON.stringify({ d: aiToday(), n: aiUsed() + 1 })); } catch (e) {} }
+  function aiSystem() {
+    const d = new Date(), names = ['일', '월', '화', '수', '목', '금', '토'];
+    return '너는 "AI GALAXY"라는 이름의 학급 포털 도우미야. 대화 상대는 초등학교 4학년 학생들이야.\n' +
+      '- 쉽고 친절한 존댓말(해요체)로, 보통 2~4문장으로 짧게 답해. 어려운 말은 쉽게 풀어 설명해.\n' +
+      '- 숙제나 문제의 정답만 알려주기보다 힌트와 풀이 과정을 함께 알려줘.\n' +
+      '- 욕설, 폭력·성적인 내용, 위험한 행동, 개인정보(이름·전화번호·주소 등) 요구에는 정중히 거절하고 어른과 상의하도록 안내해.\n' +
+      '- 학생이 힘들어 보이면 따뜻하게 공감하고 선생님이나 보호자에게 이야기하도록 권해.\n' +
+      '- 모르는 것은 모른다고 말하고, 추측을 사실처럼 말하지 마.\n' +
+      '- 학급의 자산·급식·시간표 같은 실제 데이터는 직접 알 수 없으니 포털 홈 탭을 보거나 선생님께 물어보라고 안내해.\n' +
+      '- 이모지는 가끔만 써. 오늘은 ' + d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + names[d.getDay()] + '요일이야.';
+  }
+  function aiRequest(body) {
+    const c = aiCfg();
+    const headers = { 'content-type': 'application/json' };
+    let url = 'https://api.anthropic.com/v1/messages';
+    if (c.proxy) { url = c.proxy; }
+    else {
+      headers['x-api-key'] = c.key;
+      headers['anthropic-version'] = '2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access'] = 'true';
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    return fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: ctrl.signal })
+      .then(res => { clearTimeout(timer); return res; }, err => { clearTimeout(timer); throw err; });
+  }
+  async function aiAskClaude(onDelta) {
+    let msgs = gHistory.slice(-AI_MAX_HISTORY);
+    while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+    const res = await aiRequest({ model: AI_MODEL, max_tokens: 500, system: aiSystem(), messages: msgs, stream: true });
+    if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; throw e; }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '', full = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const j = line.slice(5).trim();
+        if (!j || j === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(j);
+          if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') { full += ev.delta.text; onDelta(full); }
+        } catch (e) {}
+      }
+    }
+    return full;
+  }
+  function aiGeminiURL(model, stream) {
+    return 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) +
+      (stream ? ':streamGenerateContent?alt=sse' : ':generateContent');
+  }
+  function aiGeminiFetch(url, key, body) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body), signal: ctrl.signal })
+      .then(res => { clearTimeout(timer); return res; }, err => { clearTimeout(timer); throw err; });
+  }
+  async function aiAskGemini(onDelta) {
+    const c = aiCfg();
+    let msgs = gHistory.slice(-AI_MAX_HISTORY);
+    while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+    const body = {
+      systemInstruction: { parts: [{ text: aiSystem() }] },
+      contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+      generationConfig: { maxOutputTokens: 1500, temperature: 0.7 }
+    };
+    const res = await aiGeminiFetch(aiGeminiURL(c.gmodel, true), c.gkey, body);
+    if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; throw e; }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '', full = '', blocked = false;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const j = line.slice(5).trim();
+        if (!j || j === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(j);
+          if (ev.promptFeedback && ev.promptFeedback.blockReason) blocked = true;
+          const cand = ev.candidates && ev.candidates[0];
+          if (cand && cand.finishReason === 'SAFETY') blocked = true;
+          const parts = cand && cand.content && cand.content.parts;
+          if (parts) parts.forEach(pt => { if (pt.text && !pt.thought) { full += pt.text; onDelta(full); } });
+        } catch (e) {}
+      }
+    }
+    if (!full.trim() && blocked) { const e = new Error('blocked'); e.code = 'blocked'; throw e; }
+    return full;
+  }
+  function aiAsk(onDelta) { return aiCfg().provider === 'gemini' ? aiAskGemini(onDelta) : aiAskClaude(onDelta); }
+  function aiErrorMsg(e) {
+    const s = e && e.status;
+    if (e && e.code === 'blocked') return '이 질문에는 답해 줄 수 없어요. 다른 질문을 해 볼까요?';
+    if (s === 401 || s === 403) return 'API 키가 올바르지 않아요. 선생님께 알려 주세요.';
+    if (s === 400) return 'API 키 또는 모델 이름이 올바르지 않아요. 선생님께 알려 주세요.';
+    if (s === 404) return 'AI 모델 이름을 찾을 수 없어요. 선생님께 알려 주세요.';
+    if (s === 429) return '지금 질문이 너무 많아요. 잠시(1분) 후 다시 물어봐 주세요.';
+    if (s === 503 || s === 529) return 'AI 서버가 바빠요. 잠시 후 다시 시도해 주세요.';
+    if (e && e.name === 'AbortError') return '답변이 너무 오래 걸려서 멈췄어요.';
+    if (s) return 'AI 연결에 문제가 생겼어요. (오류 ' + s + ')';
+    return '인터넷 연결을 확인해 주세요.';
+  }
+  function gFoot() {
+    const el = document.getElementById('galaxyFoot');
+    if (!el) return;
+    const c = aiCfg();
+    el.textContent = (aiReady()
+      ? '🟢 실제 AI 연결됨(' + (c.provider === 'gemini' ? 'Gemini' : 'Claude') + ') · 오늘 ' + aiUsed() + '/' + AI_DAILY_LIMIT + '회 · AI도 틀릴 수 있어요. 개인정보는 입력하지 마세요.'
+      : '⚪ 오프라인 모드(규칙 기반) · 틀릴 수 있어요. 중요한 내용은 선생님께 확인하세요.') + ' · 지금까지 ' + gCount + '개의 답변';
+  }
+  function gTyping() {
+    const row = gAdd('ai', '');
+    row.querySelector('.g-bub').innerHTML = '<span class="g-typing"><i></i><i></i><i></i></span>';
+    return row;
+  }
+  function gPush(user, ai) {
+    gHistory.push({ role: 'user', content: user }, { role: 'assistant', content: ai });
+    if (gHistory.length > 40) gHistory = gHistory.slice(-40);
+  }
+  function gOffline(text, note) {
+    return { text: gCompose(text, gIntent(text)), tag: note };
+  }
+  async function gAI(text) {
+    const row = gTyping(), bub = row.querySelector('.g-bub'), log = document.getElementById('galaxyLog');
+    if (aiUsed() >= AI_DAILY_LIMIT) {
+      row.remove();
+      const r = gOffline(text, '오늘 AI 대화 횟수를 모두 사용했어요 · 오프라인 답변');
+      gAdd('ai', r.text, r.tag); return;
+    }
+    gHistory.push({ role: 'user', content: text });
+    try {
+      aiBump();
+      let started = false;
+      const full = await aiAsk(t => { started = true; bub.textContent = t; log.scrollTop = log.scrollHeight; });
+      if (!full.trim()) throw new Error('empty');
+      gHistory.push({ role: 'assistant', content: full });
+      const tag = document.createElement('span'); tag.className = 'g-tag'; tag.textContent = 'AI 답변'; bub.appendChild(tag);
+      log.scrollTop = log.scrollHeight;
+    } catch (e) {
+      gHistory.pop();
+      row.remove();
+      const r = gOffline(text, aiErrorMsg(e) + ' · 오프라인 답변');
+      gAdd('ai', r.text, r.tag);
+    }
+  }
+
+  function aiProvUI() {
+    const prov = document.getElementById('aiProvider').value;
+    document.getElementById('aiGemBox').hidden = prov !== 'gemini';
+    document.getElementById('aiClaudeBox').hidden = prov !== 'claude';
+    document.getElementById('aiProvNote').innerHTML = prov === 'gemini'
+      ? '· 키 발급: <b>Google AI Studio</b>(aistudio.google.com)에 구글 계정으로 로그인 → <b>Get API key</b> → <b>Create API key</b>. 카드 등록 없이 무료 한도로 쓸 수 있어요.<br>' +
+        '· 키는 <b>이 브라우저(기기)</b>에만 저장돼요. 학생이 개발자도구로 볼 수 있으니 <b>이 포털 전용 키</b>를 만들고, 노출이 의심되면 AI Studio에서 삭제하세요.<br>' +
+        '· ⚠️ 무료 등급에서는 <b>입력한 대화가 Google 서비스 개선에 사용될 수 있어요.</b> 학생에게 이름·연락처 같은 개인정보를 쓰지 않도록 꼭 안내해 주세요.<br>' +
+        '· 무료 한도(분당·일일 요청 수)를 넘으면 "질문이 너무 많아요"가 떠요. 이때는 잠시 후 다시 시도하면 돼요.<br>' +
+        '· 하루 질문 횟수는 기기당 ' + AI_DAILY_LIMIT + '회로 제한돼요.'
+      : '· 키는 <b>이 브라우저(기기)</b>에만 저장돼요. 학생이 개발자도구로 키를 볼 수 있으니 <b>월 지출 한도를 낮게 설정한 전용 키</b>를 쓰세요.<br>' +
+        '· Claude API는 유료(선충전 크레딧)예요. 대화 내용은 Anthropic 서버로 전송돼요.<br>' +
+        '· 하루 질문 횟수는 기기당 ' + AI_DAILY_LIMIT + '회로 제한돼요.';
+  }
+  function openAiCfg() {
+    const c = aiCfg();
+    document.getElementById('aiProvider').value = c.provider;
+    document.getElementById('aiGKeyInput').value = c.gkey;
+    document.getElementById('aiGModelInput').value = c.gmodel === AI_GMODEL_DEFAULT ? '' : c.gmodel;
+    document.getElementById('aiKeyInput').value = c.key;
+    document.getElementById('aiProxyInput').value = c.proxy;
+    aiProvUI();
+    const m = document.getElementById('aiCfgMsg'); m.textContent = ''; m.className = 'g-modal-msg';
+    document.getElementById('galaxyCfg').hidden = false;
+    document.getElementById(c.provider === 'gemini' ? 'aiGKeyInput' : 'aiKeyInput').focus();
+  }
+  function closeAiCfg() { document.getElementById('galaxyCfg').hidden = true; }
+  async function saveAiCfg() {
+    const msg = document.getElementById('aiCfgMsg');
+    const fail = t => { msg.className = 'g-modal-msg err'; msg.textContent = t; };
+    const prov = document.getElementById('aiProvider').value;
+    const gkey = document.getElementById('aiGKeyInput').value.trim();
+    const gmodel = document.getElementById('aiGModelInput').value.trim();
+    const key = document.getElementById('aiKeyInput').value.trim();
+    const proxy = document.getElementById('aiProxyInput').value.trim();
+    if (prov === 'gemini' && !gkey) return fail('Gemini API 키를 입력해 주세요.');
+    if (prov === 'claude' && !key && !proxy) return fail('API 키 또는 프록시 주소를 입력해 주세요.');
+    if (prov === 'claude' && proxy && !/^https?:\/\//i.test(proxy)) return fail('프록시 주소는 http(s)://로 시작해야 해요.');
+    try {
+      localStorage.setItem(AI_PROV_STORE, prov);
+      if (prov === 'gemini') { localStorage.setItem(AI_GKEY_STORE, gkey); localStorage.setItem(AI_GMODEL_STORE, gmodel); }
+      else { localStorage.setItem(AI_KEY_STORE, key); localStorage.setItem(AI_PROXY_STORE, proxy); }
+    } catch (e) {}
+    msg.className = 'g-modal-msg'; msg.textContent = '연결 테스트 중...';
+    try {
+      let res;
+      if (prov === 'gemini') {
+        res = await aiGeminiFetch(aiGeminiURL(gmodel || AI_GMODEL_DEFAULT, false), gkey,
+          { contents: [{ role: 'user', parts: [{ text: '안녕이라고만 답해줘' }] }], generationConfig: { maxOutputTokens: 200 } });
+      } else {
+        res = await aiRequest({ model: AI_MODEL, max_tokens: 20, messages: [{ role: 'user', content: '안녕이라고만 답해줘' }] });
+      }
+      if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; throw e; }
+      msg.className = 'g-modal-msg ok'; msg.textContent = '✅ 연결 성공! 이제 학생들이 AI와 대화할 수 있어요.';
+    } catch (e) {
+      fail('❌ ' + aiErrorMsg(e) + ' (설정은 저장됐어요)');
+    }
+    gFoot();
+  }
+  function clearAiCfg() {
+    try { [AI_KEY_STORE, AI_PROXY_STORE, AI_GKEY_STORE, AI_GMODEL_STORE, AI_PROV_STORE].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    ['aiKeyInput', 'aiProxyInput', 'aiGKeyInput', 'aiGModelInput'].forEach(id => { document.getElementById(id).value = ''; });
+    const m = document.getElementById('aiCfgMsg'); m.className = 'g-modal-msg ok'; m.textContent = '삭제했어요. 오프라인 모드로 돌아갑니다.';
+    gHistory = []; gFoot();
   }
   function gAdd(who, text, tag) {
     const log = document.getElementById('galaxyLog');
@@ -1083,16 +1381,26 @@
     input.value = '';
     gAdd('me', text);
     gBusy = true;
-    const typing = gAdd('ai', '');
-    typing.querySelector('.g-bub').innerHTML = '<span class="g-typing"><i></i><i></i><i></i></span>';
-    setTimeout(() => {
-      typing.remove();
-      const r = gReply(text);
-      gAdd('ai', r.text, r.tag);
-      document.getElementById('galaxyFoot').textContent = '지금까지 ' + gCount + '개의 답변 · 규칙 기반 AI라서 틀릴 수 있어요. 중요한 내용은 선생님께 확인하세요.';
-      gBusy = false;
-      input.focus();
-    }, 350 + Math.random() * 450);
+    const finish = () => { gBusy = false; gFoot(); input.focus(); };
+    const smart = gSmart(text);
+    if (smart) {           // 계산·날짜·급식·학급 정보·안전 안내는 AI 없이 정확하게 직접 답변
+      gCount++;
+      const typing = gTyping();
+      setTimeout(() => { typing.remove(); gAdd('ai', smart.text, smart.tag); gPush(text, smart.text); finish(); }, 350 + Math.random() * 450);
+      return;
+    }
+    if (!aiReady()) {      // AI 미설정 → 기존 오프라인 답변
+      gCount++;
+      const typing = gTyping();
+      setTimeout(() => {
+        typing.remove();
+        const r = gOffline(text, 'AI 미연결 · 오프라인 답변');
+        gAdd('ai', r.text, r.tag); finish();
+      }, 350 + Math.random() * 450);
+      return;
+    }
+    gCount++;
+    gAI(text).then(finish, finish);
   }
   function initGalaxy() {
     if (!gInit) {
@@ -1106,8 +1414,16 @@
       const input = document.getElementById('galaxyInput');
       input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); gSend(); } });
       document.getElementById('galaxySend').addEventListener('click', () => gSend());
+      document.getElementById('galaxyCfgBtn').addEventListener('click', openAiCfg);
+      document.getElementById('aiCfgSave').addEventListener('click', saveAiCfg);
+      document.getElementById('aiProvider').addEventListener('change', aiProvUI);
+      document.getElementById('aiCfgClear').addEventListener('click', clearAiCfg);
+      document.getElementById('aiCfgClose').addEventListener('click', closeAiCfg);
+      document.getElementById('galaxyCfg').addEventListener('keydown', e => { if (e.key === 'Escape') closeAiCfg(); });
       gAdd('ai', '안녕하세요! AI GALAXY예요.\n질문에 답하고, 간단한 계산, 오늘 날짜·급식 안내, 학급 자산 조회를 도와드릴 수 있어요. 무엇이든 편하게 물어보세요.');
     }
+    document.getElementById('galaxyCfgBtn').hidden = role !== 'member';   // 설정은 로그인한 선생님만
+    gFoot();
     setTimeout(() => { try { document.getElementById('galaxyInput').focus(); } catch (e) {} }, 50);
   }
 
