@@ -78,6 +78,7 @@
   .guest-note { margin-top: 8px; font-size: 12px; color: #94a3b8; }
 
   .tab[data-id="home"] { --accent: #fbbf24; }
+  #frame-pokedex.active { display:block !important; }
 
 
   /* 🐼 홈 - 랜덤 판다 사진 */
@@ -701,6 +702,7 @@
   <button class="tab" role="tab" data-id="bank"  id="tab-bank"  aria-controls="frame-bank"  aria-selected="false"><span class="dot"></span>🏦 은행 관리</button>
   <button class="tab" role="tab" data-id="asset" id="tab-asset" aria-controls="frame-asset" aria-selected="false"><span class="dot"></span>💰 자산 관리</button>
   <button class="tab" role="tab" data-id="quiz"  id="tab-quiz"  aria-controls="frame-quiz"  aria-selected="false"><span class="dot"></span>🎯 부곡초 퀴즈</button>
+  <button class="tab" role="tab" data-id="pokedex" id="tab-pokedex" aria-controls="frame-pokedex" aria-selected="false" style="--accent:#86efac"><span class="dot"></span>🐼 판다 도감</button>
   <button class="tab" role="tab" data-id="badge" id="tab-badge" aria-controls="frame-badge" aria-selected="false"><span class="dot"></span>🏅 우리의 업적</button>
   <button class="tab" role="tab" data-id="dance" id="tab-dance" aria-controls="frame-dance" aria-selected="false"><span class="dot"></span>💃 랜덤플레이댄스</button>
   <button class="tab" role="tab" data-id="galaxy" id="tab-galaxy" aria-controls="frame-galaxy" aria-selected="false"><span class="dot"></span>🌌 AI GALAXY</button>
@@ -851,7 +853,25 @@
   </section>
   <iframe id="frame-bank"  title="4-4반 은행 관리 프로그램" role="tabpanel" aria-labelledby="tab-bank"></iframe>
   <iframe id="frame-asset" title="4-4반 자산관리 프로그램" role="tabpanel" aria-labelledby="tab-asset"></iframe>
+  <div id="quizResetTools" style="display:none;position:absolute;z-index:4;top:8px;right:8px;width:min(310px,calc(100% - 16px));padding:10px;border-radius:12px;background:rgba(15,23,42,.94);border:1px solid #fca5a5;color:#fff;box-shadow:0 8px 24px #0005">
+    <div style="font-size:12px;font-weight:800;margin-bottom:6px">🔐 학생 기록 초기화 도구</div>
+    <input id="quizResetStudent" type="text" placeholder="초기화할 학생 이름" style="width:100%;padding:8px;border-radius:7px;border:1px solid #ffffff66;background:#ffffff18;color:#fff;margin-bottom:6px">
+    <input id="quizResetPass" type="password" inputmode="numeric" placeholder="비밀번호 입력" style="width:100%;padding:8px;border-radius:7px;border:1px solid #ffffff66;background:#ffffff18;color:#fff;margin-bottom:6px">
+    <button id="quizResetBtn" type="button" style="padding:7px 10px;border-radius:8px;border:0;background:#dc2626;color:white;font-weight:800">학생 기록 초기화</button>
+    <div id="quizResetMsg" style="font-size:11px;margin-top:6px;line-height:1.4">이 브라우저에 저장된 해당 학생 이름이 포함된 기록만 대상으로 합니다.</div>
+  </div>
   <iframe id="frame-quiz"  title="부곡초 퀴즈 리그전 & 랭킹판" role="tabpanel" aria-labelledby="tab-quiz"></iframe>
+
+  <section id="frame-pokedex" role="tabpanel" aria-labelledby="tab-pokedex" style="position:absolute;inset:0;display:none;overflow-y:auto;padding:20px 16px 30px;color:#fff;background:radial-gradient(circle at 8% 5%,rgba(134,239,172,.65),transparent 35%),radial-gradient(circle at 95% 95%,rgba(45,212,191,.5),transparent 35%),linear-gradient(135deg,#14532d,#065f46 50%,#164e63)">
+    <div style="max-width:1100px;margin:auto">
+      <div style="text-align:center;margin:6px 0 18px"><h2 style="font-size:clamp(26px,5vw,38px)">🐼 부곡초 판다 도감</h2><p style="margin-top:8px;color:#dcfce7">매우 어려운 미션 35개에 도전하고 서로 다른 판다 35마리를 모아 보세요!</p></div>
+      <div style="padding:16px;border:1px solid #ffffff55;border-radius:18px;background:#ffffff18;margin-bottom:16px">
+        <div id="pdxProgress" style="font-weight:800;margin-bottom:10px">획득한 판다 0 / 35</div><div style="height:10px;background:#ffffff30;border-radius:99px;overflow:hidden"><div id="pdxBar" style="height:100%;width:0;background:linear-gradient(90deg,#86efac,#2dd4bf);transition:width .25s"></div></div>
+        <p style="font-size:12px;line-height:1.6;margin-top:10px;color:#dcfce7">모든 미션은 매우 어려운 도전 과제입니다. 조건을 실제로 수행한 뒤 완료 버튼을 누르세요. 완료 기록과 도감은 이 브라우저에 저장됩니다.</p>
+      </div>
+      <div id="pdxGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px"></div>
+    </div>
+  </section>
   <section class="badge" id="frame-badge" role="tabpanel" aria-labelledby="tab-badge">
     <div class="bd-wrap">
       <div class="bd-card" id="mvpCard"></div>
@@ -2037,5 +2057,110 @@
 })();
 </script>
 
+
+<script>
+/* 판다 도감: 35개의 개별 미션과 브라우저 저장 */
+(function(){
+ const missions=[
+ ['🏠','완벽한 홈 분석가','홈 화면의 시간표·공휴일·랜덤 판다 정보를 모두 확인하고, 서로 다른 날에 3회 이상 방문하기'],
+ ['🕒','시간표 감정사','오늘 시간표를 확인하고 과목 순서를 정확히 기억해 퀴즈처럼 스스로 재현하기'],
+ ['🎉','공휴일 추적자','다가오는 공휴일을 확인하고 날짜와 요일을 달력과 대조해 정확히 기록하기'],
+ ['🏦','경제 시스템 전문가','은행 탭의 기능을 전부 살펴보고 입출금 또는 관련 내역을 5회 이상 점검하기'],
+ ['💰','자산 관리 고수','자산 내역을 검토하고 지출·수입을 분류해 합계와 잔액을 직접 계산해 보기'],
+ ['🎯','퀴즈 연속 정복자','부곡초 퀴즈 10문제를 연속으로 풀고, 틀린 문제는 정답과 이유까지 다시 확인하기'],
+ ['🏆','랭킹 분석가','리그전 랭킹판을 확인하고 상위 기록 5개와 자신의 기록을 비교해 차이 분석하기'],
+ ['🏅','업적 완전 정복자','업적 탭의 항목을 빠짐없이 살펴보고 달성 조건을 5개 이상 직접 수행하기'],
+ ['💃','댄스 챌린지 마스터','랜덤플레이댄스에서 서로 다른 곡 5개를 선택하고 각 곡을 끝까지 감상하기'],
+ ['🌌','은하 탐험 전문가','AI GALAXY의 서로 다른 기능 3개를 사용하고 각 기능의 결과를 비교하기'],
+ ['🔍','검색 연구원','4반 AI 포털에서 하나의 학습 주제를 서로 다른 검색어 5개로 찾아 신뢰할 만한 결과를 비교하기'],
+ ['💬','소통 기여자','우리반 소통 탭을 확인하고 규칙을 지키며 도움이 되는 글 또는 댓글을 3회 남기기'],
+ ['🎵','음악 큐레이터','댄스 탭에서 서로 다른 노래 5곡을 찾아 제목을 확인하고 나만의 추천 목록 만들기'],
+ ['📚','학습 기능 전문가','프로그램의 학습 기능 3가지를 실제 사용하고 각각 어떤 점이 도움이 되는지 정리하기'],
+ ['🧭','탭 완전 탐험가','서로 다른 탭 8개 이상을 방문해 각 탭의 핵심 기능을 하나씩 설명하기'],
+ ['🧠','오답 분석 박사','퀴즈 문제 10개를 풀고 오답 또는 헷갈린 문제 5개에 대해 왜 틀렸는지 설명하기'],
+ ['⭐','꾸준함의 전설','서로 다른 미션 5개를 완료하고 하루 뒤 다시 방문해 추가 미션 3개 수행하기'],
+ ['🌱','성장 기록가','도감 미션 8개를 완료한 뒤 진행률을 확인하고 다음 목표를 구체적으로 세우기'],
+ ['🍀','행운이 아닌 실력','미션 10개를 완료하고 그중 가장 어려웠던 3개와 해결 방법을 말할 수 있도록 정리하기'],
+ ['🎨','꼼꼼한 관찰자','판다 도감을 처음부터 끝까지 살펴보고 미획득 판다 10마리의 미션 조건을 각각 설명하기'],
+ ['🧹','디지털 정리 전문가','프로그램에서 입력한 내용과 기록을 검토하고 불필요하거나 잘못된 내용 5개를 정리하기'],
+ ['📝','기록 검증관','퀴즈 결과를 확인하고 기록이 저장되는지 페이지를 새로고침한 뒤 다시 점검하기'],
+ ['🤝','협동 퀴즈 대장','친구와 함께 퀴즈 10문제를 풀고 서로의 풀이 이유를 비교해 헷갈린 개념 3개 설명하기'],
+ ['⏰','일정 관리 달인','시간표와 공휴일 정보를 함께 확인해 일주일 일정표를 만들고 날짜·요일을 재검산하기'],
+ ['🌈','기능 연계 전문가','서로 다른 기능 5개를 사용하고 두 기능 이상을 연결해 학습이나 일정 관리에 활용하기'],
+ ['🐾','발자국의 전설','도감 미션 15개를 완료하고 미션별로 실제 수행한 내용을 하나씩 설명하기'],
+ ['🎁','첫 수집의 시작','첫 판다를 획득한 뒤 페이지를 새로고침해도 획득 상태가 유지되는지 확인하기'],
+ ['🌟','판다 수집가','판다 3마리를 모으고 각 판다를 얻기 위해 완료한 미션의 조건을 다시 설명하기'],
+ ['🛡️','저장 안정성 시험관','판다 5마리를 획득한 뒤 새로고침과 탭 이동 후에도 도감 기록이 유지되는지 확인하기'],
+ ['🚀','AI 활용 전문가','AI 기능을 3회 이상 서로 다른 목적으로 사용하고 결과의 유용성과 한계를 비교하기'],
+ ['📖','주제 탐구 연구원','포털에서 학습 주제를 검색해 서로 다른 출처 3개를 비교하고 핵심 내용을 5문장으로 요약하기'],
+ ['🧩','퀴즈 완주 챔피언','퀴즈 20문제를 풀고 모든 오답을 다시 확인해 정답의 근거를 설명하기'],
+ ['💎','보석 등급 수집가','판다 20마리를 모으고 아직 완료하지 않은 미션 5개의 수행 계획을 구체적으로 세우기'],
+ ['👑','왕관의 주인','판다 30마리를 모으고 프로그램의 서로 다른 기능 10개를 정확하게 설명하기'],
+ ['🐼','전설의 판다 마스터','35개 미션을 모두 수행하고, 무작위로 고른 미션 5개의 완료 조건과 수행 내용을 설명하기']
+ ];
+ const key='bugokPandaDexMissionsV1';
+ let done={}; try{done=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+ const grid=document.getElementById('pdxGrid');
+ function render(){
+  const count=missions.reduce((n,_,i)=>n+(done[i]?1:0),0);
+  document.getElementById('pdxProgress').textContent='획득한 판다 '+count+' / 35';
+  document.getElementById('pdxBar').style.width=(count/35*100)+'%';
+  grid.innerHTML=missions.map((m,i)=>'<article style="padding:14px;border-radius:15px;border:1px solid '+(done[i]?'#86efac':'#ffffff45')+';background:'+(done[i]?'#14532d99':'#ffffff12')+';text-align:center"><div style="font-size:38px">'+(done[i]?m[0]:'🔒')+'</div><b style="display:block;margin:5px 0">'+(i+1)+'. '+m[1]+'</b><p style="font-size:12px;line-height:1.6;min-height:74px;color:#dcfce7">'+m[2]+'</p><div style="display:inline-block;font-size:10px;font-weight:900;letter-spacing:.5px;border:1px solid #fbbf24;border-radius:99px;padding:3px 8px;color:#fde68a;margin-top:5px">난이도: 매우 어려움</div><div style="font-size:12px;margin:7px 0;color:'+(done[i]?'#bbf7d0':'#fde68a')+'">'+(done[i]?'✅ 획득 완료':'미획득')+'</div><button data-mission="'+i+'" '+(done[i]?'disabled':'')+' style="padding:8px 12px;border-radius:9px;border:1px solid #ffffff66;background:'+(done[i]?'#ffffff20':'linear-gradient(135deg,#10b981,#0f766e)')+';color:white;font-weight:800">'+(done[i]?'획득함':'미션 완료 · 판다 획득')+'</button></article>').join('');
+ }
+ grid.addEventListener('click',e=>{const b=e.target.closest('[data-mission]');if(!b)return;const i=Number(b.dataset.mission);if(done[i])return;if(!confirm('매우 어려운 미션입니다.\n\n「'+missions[i][1]+'」\n'+missions[i][2]+'\n\n조건을 실제로 모두 수행했나요?'))return;done[i]=true;try{localStorage.setItem(key,JSON.stringify(done))}catch(err){}render();});
+ render();
+})();
+</script>
+<script>
+/* 퀴즈 학생 기록 초기화 보조 도구 */
+(function(){
+ const tab=document.getElementById('tab-quiz'), box=document.getElementById('quizResetTools');
+ if(!tab||!box)return;
+ tab.addEventListener('click',()=>{box.style.display='block';});
+ document.querySelectorAll('.tab').forEach(t=>{if(t!==tab)t.addEventListener('click',()=>{box.style.display='none';});});
+ document.getElementById('quizResetBtn').addEventListener('click',()=>{
+  const name=document.getElementById('quizResetStudent').value.trim(), pass=document.getElementById('quizResetPass').value;
+  const msg=document.getElementById('quizResetMsg');
+  if(pass!=='44'){msg.textContent='비밀번호가 올바르지 않습니다.';msg.style.color='#fca5a5';return;}
+  if(!name){msg.textContent='초기화할 학생 이름을 입력하세요.';msg.style.color='#fca5a5';return;}
+  if(!confirm('정말 "'+name+'" 학생 이름이 포함된 이 브라우저의 저장 기록을 삭제할까요?'))return;
+  let removed=0;
+  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);let v=localStorage.getItem(k)||'';if(/quiz|rank|ranking|score|leaderboard|리그|랭킹|점수/i.test(k) && (k+' '+v).toLowerCase().includes(name.toLowerCase())){localStorage.removeItem(k);removed++;}}}catch(e){}
+  msg.textContent='이 브라우저에서 이름이 포함된 저장 항목 '+removed+'개를 삭제했습니다. 퀴즈가 별도 서버에 저장하는 기록은 여기서 초기화할 수 없습니다.';
+  msg.style.color='#fde68a';document.getElementById('quizResetPass').value='';
+ });
+})();
+</script>
+<script>
+/* 판다 도감 탭 연결 수정: 기존 탭 시스템은 iframe 위주라 section 도감이 열리지 않던 문제 해결 */
+(function () {
+  const tab = document.getElementById('tab-pokedex');
+  const panel = document.getElementById('frame-pokedex');
+  if (!tab || !panel) return;
+  function openPokedex() {
+    document.querySelectorAll('.tab').forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
+    document.querySelectorAll('[id^="frame-"]').forEach(function (f) { f.classList.remove('active'); });
+    tab.setAttribute('aria-selected', 'true');
+    panel.classList.add('active');
+    panel.style.display = 'block';
+    panel.scrollTop = 0;
+  }
+  tab.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    openPokedex();
+  }, true);
+  tab.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); e.stopPropagation(); openPokedex();
+    }
+  }, true);
+  /* 다른 탭으로 이동하면 도감도 비활성화 */
+  document.querySelector('.tabbar').addEventListener('click', function (e) {
+    const other = e.target.closest('.tab');
+    if (other && other !== tab) panel.classList.remove('active');
+  });
+})();
+</script>
 </body>
 </html>
