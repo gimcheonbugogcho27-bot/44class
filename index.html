@@ -616,6 +616,13 @@
 .sn-bot-btn { margin-left: auto; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: #fff; border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
 .sn-bot-btn:hover { background: rgba(255,255,255,.25); }
 
+/* ===== 홈 API 카드 줄 ===== */
+.home-api { max-width: 1100px; margin: 0 auto 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.home-api .ap-card { background: rgba(255,255,255,.12); }
+.ap-btn.sm { white-space: nowrap; }
+.home-api .ap-nav { flex-wrap: wrap; }
+.home-api .ap-dlab { font-size: 12.5px; }
+
 /* ===== 🌐 API 탭 ===== */
 .tab[data-id="api"] { --accent: #22d3ee; }
 .apitab { position: absolute; inset: 0; display: none; overflow-y: auto; padding: 18px 16px 28px; color: #fff;
@@ -728,6 +735,7 @@
         <div id="homeTimetable"></div>
       </div>
     </div>
+    <div class="home-api" id="homeApi" aria-label="API 실시간 정보"></div>
     <div class="add-wrap">
       <div class="hcard">
         <div class="h-head"><span id="addTitle">➕ 전체 학생 자산 추가</span>
@@ -1113,11 +1121,11 @@
 
   var grid = $('apGrid'), started = false, cards = {};
 
-  function card(id, title, wide) {
+  function card(id, title, wide, tg) {
     var el = h('div', 'ap-card' + (wide ? ' wide' : '')), hd = h('div', 'ap-hd'), rb = h('button', 'ap-ref', '↻');
     rb.title = '새로고침'; rb.setAttribute('aria-label', title + ' 새로고침');
     hd.appendChild(h('h3', null, title)); hd.appendChild(rb);
-    var body = h('div', 'ap-body'); el.appendChild(hd); el.appendChild(body); grid.appendChild(el);
+    var body = h('div', 'ap-body'); el.appendChild(hd); el.appendChild(body); (tg || grid).appendChild(el);
     var cd = { el: el, hd: hd, body: body, load: null };
     rb.onclick = function () { if (cd.load) run(cd, cd.load); };
     cards[id] = cd; return cd;
@@ -1156,7 +1164,7 @@
     };
     bar.appendChild(sel);
   }
-  function reloadGeo() { ['weather', 'air'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); }
+  function reloadGeo() { ['weather', 'air', 'h_weather', 'h_air'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); }
 
   /* ===== ⚙ 학교·봇 설정 ===== */
   function buildSettings() {
@@ -1192,7 +1200,7 @@
       }).catch(function (e) { msg.textContent = '❌ 학교 검색 실패: ' + (e.message || '네트워크 오류'); });
     };
     nm.onkeydown = function (e) { if (e.key === 'Enter') sb.click(); };
-    function persist() { C.saveCfg({ key: key.value.trim(), atpt: pick.atpt, schul: pick.schul, name: pick.name, grade: gr.value || '4', cls: cl.value || '4' }); if (C.botInfo) C.botInfo(); if (cards.school) run(cards.school, cards.school.load); }
+    function persist() { C.saveCfg({ key: key.value.trim(), atpt: pick.atpt, schul: pick.schul, name: pick.name, grade: gr.value || '4', cls: cl.value || '4' }); if (C.botInfo) C.botInfo(); ['school', 'h_school'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); }
     save.onclick = function () { if (!pick.schul) { msg.textContent = '먼저 학교를 찾아서 골라 주세요.'; return; } persist(); msg.textContent = '✅ 저장했어요!'; };
     test.onclick = function () {
       if (!pick.schul) { msg.textContent = '먼저 학교를 찾아서 골라 주세요.'; return; }
@@ -1203,8 +1211,8 @@
   }
 
   /* ===== 🍚 오늘의 급식·시간표 ===== */
-  function buildSchool() {
-    var cd = card('school', '🍚 급식 · 📚 시간표', true), off = 0;
+  function buildSchool(pre, tg, mealOnly) {
+    var cd = card((pre || '') + 'school', mealOnly ? '🍚 오늘의 급식 (나이스 API)' : '🍚 급식 · 📚 시간표', !mealOnly, tg), off = 0;
     var nav = h('div', 'ap-nav'), pv = h('button', 'ap-btn sm', '◀'), tdy = h('button', 'ap-btn sm', '오늘'), nx = h('button', 'ap-btn sm', '▶'), lab = h('span', 'ap-dlab');
     nav.appendChild(pv); nav.appendChild(lab); nav.appendChild(nx); nav.appendChild(tdy); cd.el.insertBefore(nav, cd.body);
     function reload() { run(cd, cd.load); }
@@ -1212,7 +1220,7 @@
     cd.load = function () {
       var k = C.kst(Date.now() + off * 86400000), c = C.cfg();
       lab.textContent = C.dateLabel(k) + (off === 0 ? ' · 오늘' : '');
-      if (!c.schul) return h('div', 'ap-note', '위 “⚙️ 급식·시간표 봇 설정”에서 학교를 먼저 설정해 주세요.');
+      if (!c.schul) return h('div', 'ap-note', 'API 탭의 “⚙️ 급식·시간표 봇 설정”에서 학교를 먼저 설정해 주세요.');
       return C.fetchDay(c, k.ymd).then(function (d) {
         var box = h('div', 'ap-two'), a = h('div'), m = h('div');
         a.appendChild(h('h4', null, '📚 시간표 (' + c.grade + '-' + c.cls + ')'));
@@ -1220,7 +1228,8 @@
         if (d.truncated) a.appendChild(h('div', 'ap-note', '※ 인증키가 없어 일부만 보일 수 있어요.'));
         m.appendChild(h('h4', null, '🍚 급식'));
         if (d.meals.length) d.meals.forEach(function (x) { m.appendChild(h('div', 'ap-mt', x.type + (x.cal ? ' · ' + x.cal : ''))); var ul = h('ul'); x.dishes.forEach(function (s) { ul.appendChild(h('li', null, s)); }); m.appendChild(ul); }); else m.appendChild(h('div', 'ap-note', '정보가 없어요.'));
-        box.appendChild(a); box.appendChild(m); return box;
+        if (!mealOnly) box.appendChild(a);
+        box.appendChild(m); return box;
       });
     };
   }
@@ -1230,8 +1239,8 @@
     56: ['🌧️', '어는 이슬비'], 57: ['🌧️', '어는 이슬비'], 61: ['🌧️', '비'], 63: ['🌧️', '비'], 65: ['🌧️', '강한 비'], 66: ['🌧️', '어는 비'], 67: ['🌧️', '어는 비'], 71: ['🌨️', '눈'], 73: ['🌨️', '눈'], 75: ['❄️', '강한 눈'],
     77: ['🌨️', '싸락눈'], 80: ['🌦️', '소나기'], 81: ['🌦️', '소나기'], 82: ['⛈️', '강한 소나기'], 85: ['🌨️', '눈 소나기'], 86: ['🌨️', '눈 소나기'], 95: ['⛈️', '뇌우'], 96: ['⛈️', '우박 뇌우'], 99: ['⛈️', '우박 뇌우'] };
   function wc(c) { return WC[c] || ['🌡️', '날씨']; }
-  function buildWeather() {
-    var cd = card('weather', '🌤️ 날씨 (Open-Meteo)');
+  function buildWeather(pre, tg) {
+    var cd = card((pre || '') + 'weather', '🌤️ 날씨 (Open-Meteo)', false, tg);
     cd.load = function () {
       var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon +
         '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&wind_speed_unit=ms&timezone=Asia%2FSeoul&forecast_days=3';
@@ -1253,8 +1262,8 @@
 
   /* ===== 😷 미세먼지 ===== */
   function grade(v, cuts) { var n = ['좋음', '보통', '나쁨', '매우나쁨'], em = ['🟦', '🟩', '🟧', '🟥']; for (var i = 0; i < 3; i++) if (v <= cuts[i]) return em[i] + ' ' + n[i]; return em[3] + ' ' + n[3]; }
-  function buildAir() {
-    var cd = card('air', '😷 미세먼지 (Open-Meteo)');
+  function buildAir(pre, tg) {
+    var cd = card((pre || '') + 'air', '😷 미세먼지 (Open-Meteo)', false, tg);
     cd.load = function () {
       return getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + loc.lat + '&longitude=' + loc.lon + '&current=pm10,pm2_5&timezone=Asia%2FSeoul').then(function (j) {
         var c = j.current || {}, box = h('div');
@@ -1322,8 +1331,8 @@
   }
 
   /* ===== 🐶🐱 랜덤 동물 ===== */
-  function buildPet() {
-    var cd = card('pet', '🐶🐱 랜덤 동물 사진 (Dog CEO · TheCatAPI)'), mode = 'dog';
+  function buildPet(pre, tg) {
+    var cd = card((pre || '') + 'pet', '🐶🐱 랜덤 동물 사진 (Dog CEO · TheCatAPI)', false, tg), mode = 'dog';
     var row = h('div', 'ap-row'), d = h('button', 'ap-btn sm', '🐶 강아지'), c = h('button', 'ap-btn sm alt', '🐱 고양이');
     row.appendChild(d); row.appendChild(c); cd.el.insertBefore(row, cd.body);
     d.onclick = function () { mode = 'dog'; run(cd, cd.load); }; c.onclick = function () { mode = 'cat'; run(cd, cd.load); };
@@ -1357,6 +1366,14 @@
     buildToolbar(); buildSettings(); buildSchool(); buildWeather(); buildAir(); buildFx(); buildHoliday(); buildIss(); buildPet(); buildWiki();
     Object.keys(cards).forEach(function (k) { if (cards[k].load) run(cards[k], cards[k].load); });
   }
+
+  /* ===== 🏠 홈 탭에 API 실시간 카드 (날씨·미세먼지·급식·동물사진) ===== */
+  (function homeInit() {
+    var box = $('homeApi'); if (!box) return;
+    buildWeather('h_', box); buildAir('h_', box); buildSchool('h_', box, true); buildPet('h_', box);
+    Object.keys(cards).forEach(function (k) { if (k.indexOf('h_') === 0 && cards[k].load) run(cards[k], cards[k].load); });
+    setInterval(function () { ['h_weather', 'h_air', 'h_school'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); }, 30 * 60 * 1000);   // 30분마다 자동 갱신
+  })();
 
   /* ===== 기존 탭 시스템과 연결 ===== */
   var bar = document.querySelector('.tabbar'), tab = $('tab-api'), frame = $('frame-api');
