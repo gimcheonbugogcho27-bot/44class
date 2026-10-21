@@ -867,7 +867,7 @@
       <div style="text-align:center;margin:6px 0 18px"><h2 style="font-size:clamp(26px,5vw,38px)">🐼 부곡초 판다 도감</h2><p style="margin-top:8px;color:#dcfce7">매우 어려운 미션 35개에 도전하고 서로 다른 판다 35마리를 모아 보세요!</p></div>
       <div style="padding:16px;border:1px solid #ffffff55;border-radius:18px;background:#ffffff18;margin-bottom:16px">
         <div id="pdxProgress" style="font-weight:800;margin-bottom:10px">획득한 판다 0 / 35</div><div style="height:10px;background:#ffffff30;border-radius:99px;overflow:hidden"><div id="pdxBar" style="height:100%;width:0;background:linear-gradient(90deg,#86efac,#2dd4bf);transition:width .25s"></div></div>
-        <p style="font-size:12px;line-height:1.6;margin-top:10px;color:#dcfce7">모든 미션은 매우 어려운 도전 과제입니다. 조건을 실제로 수행한 뒤 완료 버튼을 누르세요. 완료 기록과 도감은 이 브라우저에 저장됩니다.</p>
+        <p style="font-size:12px;line-height:1.6;margin-top:10px;color:#dcfce7">미션은 탭 방문, 실제 버튼·입력 조작, 사용 시간과 여러 날짜의 이용 기록으로 자동 확인됩니다. 도감 화면의 버튼을 눌러 임의로 획득할 수 없으며, 획득한 판다는 목록에 표시되고 기록은 이 브라우저에 저장됩니다.</p>
       </div>
       <div id="pdxGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px"></div>
     </div>
@@ -2059,56 +2059,66 @@
 
 
 <script>
-/* 판다 도감: 35개의 개별 미션과 브라우저 저장 */
+/* 판다 도감: 실제 앱 사용 행동을 추적해 미션을 자동 완료하고 수집 목록 표시 */
 (function(){
  const missions=[
- ['🏠','완벽한 홈 분석가','홈 화면의 시간표·공휴일·랜덤 판다 정보를 모두 확인하고, 서로 다른 날에 3회 이상 방문하기'],
- ['🕒','시간표 감정사','오늘 시간표를 확인하고 과목 순서를 정확히 기억해 퀴즈처럼 스스로 재현하기'],
- ['🎉','공휴일 추적자','다가오는 공휴일을 확인하고 날짜와 요일을 달력과 대조해 정확히 기록하기'],
- ['🏦','경제 시스템 전문가','은행 탭의 기능을 전부 살펴보고 입출금 또는 관련 내역을 5회 이상 점검하기'],
- ['💰','자산 관리 고수','자산 내역을 검토하고 지출·수입을 분류해 합계와 잔액을 직접 계산해 보기'],
- ['🎯','퀴즈 연속 정복자','부곡초 퀴즈 10문제를 연속으로 풀고, 틀린 문제는 정답과 이유까지 다시 확인하기'],
- ['🏆','랭킹 분석가','리그전 랭킹판을 확인하고 상위 기록 5개와 자신의 기록을 비교해 차이 분석하기'],
- ['🏅','업적 완전 정복자','업적 탭의 항목을 빠짐없이 살펴보고 달성 조건을 5개 이상 직접 수행하기'],
- ['💃','댄스 챌린지 마스터','랜덤플레이댄스에서 서로 다른 곡 5개를 선택하고 각 곡을 끝까지 감상하기'],
- ['🌌','은하 탐험 전문가','AI GALAXY의 서로 다른 기능 3개를 사용하고 각 기능의 결과를 비교하기'],
- ['🔍','검색 연구원','4반 AI 포털에서 하나의 학습 주제를 서로 다른 검색어 5개로 찾아 신뢰할 만한 결과를 비교하기'],
- ['💬','소통 기여자','우리반 소통 탭을 확인하고 규칙을 지키며 도움이 되는 글 또는 댓글을 3회 남기기'],
- ['🎵','음악 큐레이터','댄스 탭에서 서로 다른 노래 5곡을 찾아 제목을 확인하고 나만의 추천 목록 만들기'],
- ['📚','학습 기능 전문가','프로그램의 학습 기능 3가지를 실제 사용하고 각각 어떤 점이 도움이 되는지 정리하기'],
- ['🧭','탭 완전 탐험가','서로 다른 탭 8개 이상을 방문해 각 탭의 핵심 기능을 하나씩 설명하기'],
- ['🧠','오답 분석 박사','퀴즈 문제 10개를 풀고 오답 또는 헷갈린 문제 5개에 대해 왜 틀렸는지 설명하기'],
- ['⭐','꾸준함의 전설','서로 다른 미션 5개를 완료하고 하루 뒤 다시 방문해 추가 미션 3개 수행하기'],
- ['🌱','성장 기록가','도감 미션 8개를 완료한 뒤 진행률을 확인하고 다음 목표를 구체적으로 세우기'],
- ['🍀','행운이 아닌 실력','미션 10개를 완료하고 그중 가장 어려웠던 3개와 해결 방법을 말할 수 있도록 정리하기'],
- ['🎨','꼼꼼한 관찰자','판다 도감을 처음부터 끝까지 살펴보고 미획득 판다 10마리의 미션 조건을 각각 설명하기'],
- ['🧹','디지털 정리 전문가','프로그램에서 입력한 내용과 기록을 검토하고 불필요하거나 잘못된 내용 5개를 정리하기'],
- ['📝','기록 검증관','퀴즈 결과를 확인하고 기록이 저장되는지 페이지를 새로고침한 뒤 다시 점검하기'],
- ['🤝','협동 퀴즈 대장','친구와 함께 퀴즈 10문제를 풀고 서로의 풀이 이유를 비교해 헷갈린 개념 3개 설명하기'],
- ['⏰','일정 관리 달인','시간표와 공휴일 정보를 함께 확인해 일주일 일정표를 만들고 날짜·요일을 재검산하기'],
- ['🌈','기능 연계 전문가','서로 다른 기능 5개를 사용하고 두 기능 이상을 연결해 학습이나 일정 관리에 활용하기'],
- ['🐾','발자국의 전설','도감 미션 15개를 완료하고 미션별로 실제 수행한 내용을 하나씩 설명하기'],
- ['🎁','첫 수집의 시작','첫 판다를 획득한 뒤 페이지를 새로고침해도 획득 상태가 유지되는지 확인하기'],
- ['🌟','판다 수집가','판다 3마리를 모으고 각 판다를 얻기 위해 완료한 미션의 조건을 다시 설명하기'],
- ['🛡️','저장 안정성 시험관','판다 5마리를 획득한 뒤 새로고침과 탭 이동 후에도 도감 기록이 유지되는지 확인하기'],
- ['🚀','AI 활용 전문가','AI 기능을 3회 이상 서로 다른 목적으로 사용하고 결과의 유용성과 한계를 비교하기'],
- ['📖','주제 탐구 연구원','포털에서 학습 주제를 검색해 서로 다른 출처 3개를 비교하고 핵심 내용을 5문장으로 요약하기'],
- ['🧩','퀴즈 완주 챔피언','퀴즈 20문제를 풀고 모든 오답을 다시 확인해 정답의 근거를 설명하기'],
- ['💎','보석 등급 수집가','판다 20마리를 모으고 아직 완료하지 않은 미션 5개의 수행 계획을 구체적으로 세우기'],
- ['👑','왕관의 주인','판다 30마리를 모으고 프로그램의 서로 다른 기능 10개를 정확하게 설명하기'],
- ['🐼','전설의 판다 마스터','35개 미션을 모두 수행하고, 무작위로 고른 미션 5개의 완료 조건과 수행 내용을 설명하기']
+ ['🏠','첫 탐험','홈에서 30초 이상 머물고 다른 탭 2개를 실제로 열기',m=>m.dwell.home>=30&&m.tabs.size>=3],
+ ['🧭','탐험가','서로 다른 탭 5개를 열고 실제 조작 5회 하기',m=>m.tabs.size>=5&&m.actions>=5],
+ ['🔎','꼼꼼한 관찰자','탭 7개 방문 및 총 2분 이상 사용',m=>m.tabs.size>=7&&m.totalDwell>=120],
+ ['🐾','발자국 수집가','실제 조작 15회 및 4개 탭에서 각각 조작',m=>m.actions>=15&&Object.values(m.actionsByTab).filter(v=>v>0).length>=4],
+ ['🕰️','시간의 수호자','5분 이상 사용하고 탭 5개 방문',m=>m.totalDwell>=300&&m.tabs.size>=5],
+ ['🏡','홈 화면 전문가','홈에서 2분 이상 머물고 홈에서 3회 조작',m=>m.dwell.home>=120&&(m.actionsByTab.home||0)>=3],
+ ['💰','자산 탐험가','자산 관리 탭에서 실제 조작 5회',m=>m.tabs.has('asset')&&(m.actionsByTab.asset||0)>=5],
+ ['🏦','은행 연구원','은행 관리 탭에서 실제 조작 5회',m=>m.tabs.has('bank')&&(m.actionsByTab.bank||0)>=5],
+ ['🎯','퀴즈 도전자','퀴즈 탭에서 실제 조작 5회',m=>m.tabs.has('quiz')&&(m.actionsByTab.quiz||0)>=5],
+ ['🏅','업적 탐험가','업적 탭에서 실제 조작 3회',m=>m.tabs.has('badge')&&(m.actionsByTab.badge||0)>=3],
+ ['💃','댄스 관객','댄스 탭에서 실제 조작 3회',m=>m.tabs.has('dance')&&(m.actionsByTab.dance||0)>=3],
+ ['🔍','포털 탐색가','포털 탭에서 실제 조작 3회',m=>m.tabs.has('portal')&&(m.actionsByTab.portal||0)>=3],
+ ['💬','소통 탐험가','SNS 탭에서 실제 조작 3회',m=>m.tabs.has('social')&&(m.actionsByTab.social||0)>=3],
+ ['🌌','은하 여행자','AI GALAXY 탭에서 실제 조작 3회',m=>m.tabs.has('galaxy')&&(m.actionsByTab.galaxy||0)>=3],
+ ['⛏️','블록 탐험가','MINECRAFT 탭에서 실제 조작 3회',m=>m.tabs.has('minecraft')&&(m.actionsByTab.minecraft||0)>=3],
+ ['🌐','연결 전문가','API 탭에서 실제 조작 3회',m=>m.tabs.has('api')&&(m.actionsByTab.api||0)>=3],
+ ['🧩','멀티태스커','8개 탭에서 실제 조작하기',m=>Object.values(m.actionsByTab).filter(v=>v>0).length>=8],
+ ['⚡','연속 도전자','실제 조작 10회 및 탭 4개 방문',m=>m.actions>=10&&m.tabs.size>=4],
+ ['📚','꾸준한 학습자','퀴즈·포털·업적 중 2개 방문하고 10분 사용',m=>['quiz','portal','badge'].filter(t=>m.tabs.has(t)).length>=2&&m.totalDwell>=600],
+ ['🗺️','전국 탐험가','서로 다른 탭 10개 방문',m=>m.tabs.size>=10],
+ ['🛠️','기능 정복자','실제 조작 30회 달성',m=>m.actions>=30],
+ ['🎖️','숙련 탐험가','8개 탭에서 각각 3회 이상 조작',m=>Object.values(m.actionsByTab).filter(v=>v>=3).length>=8],
+ ['🌱','매일 성장','서로 다른 날짜 2일 사용 및 조작 15회',m=>m.days.size>=2&&m.actions>=15],
+ ['🌟','별빛 수집가','서로 다른 날짜 3일 방문 및 탭 8개 방문',m=>m.days.size>=3&&m.tabs.size>=8],
+ ['🛡️','기록 수호자','서로 다른 날짜 2일 사용하고 판다 1마리 이상 보유',m=>m.days.size>=2&&m.earnedCount>=1],
+ ['🎨','세심한 탐험가','10개 탭에서 조작하고 총 20분 사용',m=>Object.values(m.actionsByTab).filter(v=>v>0).length>=10&&m.totalDwell>=1200],
+ ['🔥','열정의 판다','실제 조작 50회 달성',m=>m.actions>=50],
+ ['🏆','고급 탐험가','10개 탭에서 각각 3회 이상 조작하고 30분 사용',m=>Object.values(m.actionsByTab).filter(v=>v>=3).length>=10&&m.totalDwell>=1800],
+ ['💎','보석 판다','서로 다른 날짜 5일 사용 및 조작 60회',m=>m.days.size>=5&&m.actions>=60],
+ ['👑','왕관 판다','탭 10개 방문, 8개 탭에서 각각 5회 이상 조작',m=>m.tabs.size>=10&&Object.values(m.actionsByTab).filter(v=>v>=5).length>=8],
+ ['🐼','잠자는 판다','총 45분 사용 및 서로 다른 날짜 3일 방문',m=>m.totalDwell>=2700&&m.days.size>=3],
+ ['🎋','대나무 달인','실제 조작 75회 및 10개 탭에서 조작',m=>m.actions>=75&&Object.values(m.actionsByTab).filter(v=>v>0).length>=10],
+ ['🌈','무지개 판다','서로 다른 날짜 5일, 총 60분, 탭 10개 방문',m=>m.days.size>=5&&m.totalDwell>=3600&&m.tabs.size>=10],
+ ['💫','전설의 탐험가','실제 조작 100회 및 10개 탭에서 각각 5회 이상 조작',m=>m.actions>=100&&Object.values(m.actionsByTab).filter(v=>v>=5).length>=10],
+ ['👑🐼','전설의 판다 마스터','서로 다른 날짜 7일, 총 90분, 조작 120회, 탭 10개 방문',m=>m.days.size>=7&&m.totalDwell>=5400&&m.actions>=120&&m.tabs.size>=10]
  ];
- const key='bugokPandaDexMissionsV1';
- let done={}; try{done=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
- const grid=document.getElementById('pdxGrid');
- function render(){
-  const count=missions.reduce((n,_,i)=>n+(done[i]?1:0),0);
-  document.getElementById('pdxProgress').textContent='획득한 판다 '+count+' / 35';
-  document.getElementById('pdxBar').style.width=(count/35*100)+'%';
-  grid.innerHTML=missions.map((m,i)=>'<article style="padding:14px;border-radius:15px;border:1px solid '+(done[i]?'#86efac':'#ffffff45')+';background:'+(done[i]?'#14532d99':'#ffffff12')+';text-align:center"><div style="font-size:38px">'+(done[i]?m[0]:'🔒')+'</div><b style="display:block;margin:5px 0">'+(i+1)+'. '+m[1]+'</b><p style="font-size:12px;line-height:1.6;min-height:74px;color:#dcfce7">'+m[2]+'</p><div style="display:inline-block;font-size:10px;font-weight:900;letter-spacing:.5px;border:1px solid #fbbf24;border-radius:99px;padding:3px 8px;color:#fde68a;margin-top:5px">난이도: 매우 어려움</div><div style="font-size:12px;margin:7px 0;color:'+(done[i]?'#bbf7d0':'#fde68a')+'">'+(done[i]?'✅ 획득 완료':'미획득')+'</div><button data-mission="'+i+'" '+(done[i]?'disabled':'')+' style="padding:8px 12px;border-radius:9px;border:1px solid #ffffff66;background:'+(done[i]?'#ffffff20':'linear-gradient(135deg,#10b981,#0f766e)')+';color:white;font-weight:800">'+(done[i]?'획득함':'미션 완료 · 판다 획득')+'</button></article>').join('');
- }
- grid.addEventListener('click',e=>{const b=e.target.closest('[data-mission]');if(!b)return;const i=Number(b.dataset.mission);if(done[i])return;if(!confirm('매우 어려운 미션입니다.\n\n「'+missions[i][1]+'」\n'+missions[i][2]+'\n\n조건을 실제로 모두 수행했나요?'))return;done[i]=true;try{localStorage.setItem(key,JSON.stringify(done))}catch(err){}render();});
- render();
+ const STORE='bugokPandaDexActualProgressV2';
+ const today=()=>new Date().toISOString().slice(0,10);
+ let state; try{state=JSON.parse(localStorage.getItem(STORE)||'null')}catch(e){}
+ if(!state||typeof state!=='object')state={tabs:[],actions:0,actionsByTab:{},dwell:{},totalDwell:0,days:[],earned:[],lastTab:'home',lastTick:Date.now()};
+ state.tabs=Array.isArray(state.tabs)?state.tabs:[];state.days=Array.isArray(state.days)?state.days:[];state.earned=Array.isArray(state.earned)?state.earned:[];state.actionsByTab=state.actionsByTab||{};state.dwell=state.dwell||{};state.actions=Number(state.actions)||0;state.totalDwell=Number(state.totalDwell)||0;
+ const grid=document.getElementById('pdxGrid'),progress=document.getElementById('pdxProgress'),bar=document.getElementById('pdxBar');if(!grid||!progress||!bar)return;
+ function day(){const d=today();if(!state.days.includes(d))state.days.push(d)}
+ function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}}
+ function metrics(){return{tabs:new Set(state.tabs),actions:state.actions,actionsByTab:state.actionsByTab,dwell:state.dwell,totalDwell:state.totalDwell,days:new Set(state.days),earnedCount:state.earned.length}}
+ function render(){const n=state.earned.length;progress.textContent='획득한 판다 '+n+' / 35 · 실제 조작 '+state.actions+'회 · 사용 시간 '+Math.floor(state.totalDwell/60)+'분';bar.style.width=(n/35*100)+'%';grid.innerHTML=missions.map((m,i)=>{const got=state.earned.includes(i);return '<article style="padding:14px;border-radius:15px;border:1px solid '+(got?'#86efac':'#ffffff45')+';background:'+(got?'#14532d99':'#ffffff12')+';text-align:center;min-width:0"><div style="font-size:42px;min-height:52px">'+(got?m[0]:'🔒')+'</div><b style="display:block;margin:5px 0">'+(i+1)+'. '+(got?m[1]:'??? 잠긴 판다')+'</b><p style="font-size:12px;line-height:1.6;min-height:72px;color:#dcfce7">'+(got?'🎉 획득 완료! 내 판다 목록에 등록되었어요.':m[2])+'</p><div style="font-size:12px;margin:7px 0;color:'+(got?'#bbf7d0':'#fde68a')+'">'+(got?'✅ 내가 획득한 판다':'🔒 미획득 · 조건을 실제로 달성하세요')+'</div><div style="font-size:11px;color:#d1fae5">'+(got?'도감 등록됨':'앱의 실제 사용 기록으로 자동 확인')+'</div></article>'}).join('')}
+ function evaluate(){const m=metrics();missions.forEach((x,i)=>{if(!state.earned.includes(i)&&x[3](m))state.earned.push(i)});save();render()}
+ function tabRecord(t){if(!t)return;state.lastTab=t;if(!state.tabs.includes(t))state.tabs.push(t);day();evaluate()}
+ function action(t){if(!t||t==='pokedex')return;state.actions++;state.actionsByTab[t]=(state.actionsByTab[t]||0)+1;day();evaluate()}
+ function currentTab(){const t=document.querySelector('.tab[aria-selected="true"]');return t?t.dataset.id:(state.lastTab||'home')}
+ document.querySelectorAll('.tab[data-id]').forEach(t=>t.addEventListener('click',()=>tabRecord(t.dataset.id),true));
+ document.addEventListener('click',e=>{if(e.target.closest('#frame-pokedex')||e.target.closest('.tab[data-id]')||e.target.closest('#quizResetTools'))return;if(e.target.closest('button,[role="button"],input[type="submit"],select'))action(currentTab())},true);
+ document.addEventListener('change',e=>{if(!e.target.closest('#frame-pokedex')&&e.target.matches('input,select,textarea'))action(currentTab())},true);
+ document.addEventListener('submit',e=>{if(!e.target.closest('#frame-pokedex'))action(currentTab())},true);
+ function attachFrame(frame){function attach(){try{const d=frame.contentDocument;if(!d||d.__pandaTracked)return;d.__pandaTracked=true;const tab=frame.id.replace('frame-','');d.addEventListener('click',e=>{if(e.target.closest('button,[role="button"],input[type="submit"],select'))action(tab)},true);d.addEventListener('change',e=>{if(e.target.matches('input,select,textarea'))action(tab)},true);d.addEventListener('submit',()=>action(tab),true)}catch(e){}}frame.addEventListener('load',attach);attach()}
+ document.querySelectorAll('iframe[id^="frame-"]').forEach(attachFrame);
+ day();let last=Date.now();setInterval(()=>{const now=Date.now(),delta=Math.max(0,Math.min(5,(now-last)/1000));last=now;if(document.visibilityState==='visible'){const t=currentTab();if(t&&t!=='pokedex'){state.dwell[t]=(state.dwell[t]||0)+delta;state.totalDwell+=delta;day();evaluate()}}else save()},3000);window.addEventListener('beforeunload',save);render();evaluate();
 })();
 </script>
 <script>
@@ -2159,6 +2169,64 @@
   document.querySelector('.tabbar').addEventListener('click', function (e) {
     const other = e.target.closest('.tab');
     if (other && other !== tab) panel.classList.remove('active');
+  });
+})();
+</script>
+<script>
+/* 최종 탭 라우터: 기존 탭 리스너가 화면을 다시 숨기는 경우까지 보정 */
+(function(){
+  function activate(tab){
+    if(!tab) return;
+    var id=tab.getAttribute('data-id');
+    if(!id) return;
+    // 모든 화면을 확실히 숨김
+    document.querySelectorAll('.tab[data-id]').forEach(function(t){t.setAttribute('aria-selected', t===tab?'true':'false');});
+    document.querySelectorAll('.stage [id^="frame-"]').forEach(function(p){
+      p.classList.remove('active');
+      p.style.setProperty('display','none','important');
+      if(p.tagName==='IFRAME') p.style.visibility='hidden';
+    });
+    var panel=document.getElementById('frame-'+id);
+    if(panel){
+      panel.classList.add('active');
+      panel.style.setProperty('display','block','important');
+      panel.style.visibility='visible';
+      if(panel.tagName==='IFRAME'){
+        panel.style.width='100%'; panel.style.height='100%';
+      }
+      if(id==='home'||id==='pokedex') panel.scrollTop=0;
+    }
+    var tools=document.getElementById('quizResetTools');
+    if(tools) tools.style.display=(id==='quiz'?'block':'none');
+  }
+  function fromEvent(e){
+    var tab=e.target && e.target.closest ? e.target.closest('.tab[data-id]') : null;
+    if(!tab) return;
+    var id=tab.getAttribute('data-id');
+    // 특수 탭은 자체 초기화 코드가 있어 최종 표시만 사후 보정
+    if(id==='api'||id==='social'||id==='minecraft'){
+      setTimeout(function(){
+        var panel=document.getElementById('frame-'+id);
+        if(panel){panel.classList.add('active');panel.style.setProperty('display','block','important');panel.style.visibility='visible';}
+        document.querySelectorAll('.tab[data-id]').forEach(function(t){t.setAttribute('aria-selected',t===tab?'true':'false');});
+      },0);
+      return;
+    }
+    activate(tab);
+    setTimeout(function(){activate(tab);},0);
+  }
+  document.addEventListener('click',fromEvent,true);
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    var tab=e.target && e.target.closest ? e.target.closest('.tab[data-id]') : null;
+    if(!tab)return;
+    e.preventDefault();
+    activate(tab); setTimeout(function(){activate(tab);},0);
+  },true);
+  // 첫 화면은 홈으로 고정
+  window.addEventListener('load',function(){
+    var selected=document.querySelector('.tab[data-id][aria-selected="true"]')||document.getElementById('tab-home');
+    if(selected) activate(selected);
   });
 })();
 </script>
