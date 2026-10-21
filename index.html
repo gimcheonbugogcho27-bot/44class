@@ -2230,5 +2230,88 @@
   });
 })();
 </script>
+
+<script>
+/* 홈 랭킹 보드 복구: 저장된 은행/퀴즈 기록을 주기적으로 다시 읽어 표시 */
+(function () {
+  'use strict';
+  function readJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function escapeHTML(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+    });
+  }
+  function rankHTML(entries, unit) {
+    var rows = entries
+      .map(function (e) { return [String(e[0] || ''), Number(e[1]) || 0]; })
+      .filter(function (e) { return e[0] && e[1] > 0; })
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .slice(0, 10);
+    if (!rows.length) return '<li class="h-empty">기록이 없습니다.</li>';
+    var medals = ['🥇', '🥈', '🥉'];
+    return rows.map(function (e, i) {
+      return '<li class="h-rank"><span>' + (medals[i] || (i + 1) + '.') + ' ' +
+        escapeHTML(e[0]) + '</span><strong>' + e[1].toLocaleString('ko-KR') +
+        escapeHTML(unit) + '</strong></li>';
+    }).join('');
+  }
+  function refreshHomeRankings() {
+    var assetsEl = document.getElementById('homeAsset');
+    var savingsEl = document.getElementById('homeSavings');
+    var depositEl = document.getElementById('homeDeposit');
+    var quizEl = document.getElementById('homeQuiz');
+    if (!assetsEl || !savingsEl || !depositEl || !quizEl) return;
+
+    var assets = readJSON('class4_4_assets_data', {});
+    if (!assets || typeof assets !== 'object' || Array.isArray(assets)) assets = {};
+    assetsEl.innerHTML = rankHTML(Object.keys(assets).map(function (n) {
+      return [n, assets[n]];
+    }), '원');
+
+    var records = readJSON('classBankRecords', []);
+    if (!Array.isArray(records)) records = [];
+    var savings = {}, deposits = {};
+    records.forEach(function (r) {
+      if (!r || !r.name) return;
+      var amount = Number(r.amount) || 0;
+      if (r.type === '정기적금') savings[r.name] = (savings[r.name] || 0) + amount;
+      if (r.type === '정기예금') deposits[r.name] = (deposits[r.name] || 0) + amount;
+    });
+    savingsEl.innerHTML = rankHTML(Object.keys(savings).map(function (n) { return [n, savings[n]]; }), '원');
+    depositEl.innerHTML = rankHTML(Object.keys(deposits).map(function (n) { return [n, deposits[n]]; }), '원');
+
+    var quiz = readJSON('bugok_quiz_rankings', {});
+    if (!quiz || typeof quiz !== 'object' || Array.isArray(quiz)) quiz = {};
+    quizEl.innerHTML = rankHTML(Object.keys(quiz).map(function (n) {
+      var item = quiz[n];
+      return [n, item && typeof item === 'object' ? item.score : item];
+    }), '점');
+  }
+  function safeRefresh() {
+    try { refreshHomeRankings(); } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeRefresh);
+  } else {
+    safeRefresh();
+  }
+  window.addEventListener('storage', safeRefresh);
+  document.addEventListener('visibilitychange', safeRefresh);
+  document.addEventListener('click', function (e) {
+    if (e.target && e.target.closest && e.target.closest('#tab-home')) {
+      setTimeout(safeRefresh, 0);
+      setTimeout(safeRefresh, 250);
+    }
+  }, true);
+  /* 일부 내부 iframe이 같은 탭에서 기록을 바꾸므로 주기적으로 다시 읽음 */
+  setInterval(safeRefresh, 2500);
+})();
+</script>
+
 </body>
 </html>
