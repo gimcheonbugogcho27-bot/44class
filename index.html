@@ -79,6 +79,17 @@
 
   .tab[data-id="home"] { --accent: #fbbf24; }
 
+
+  /* 🐼 홈 - 랜덤 판다 사진 */
+  .panda-card { grid-column: span 12; }
+  .panda-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr); gap: 16px; align-items: center; }
+  .panda-frame { min-height: 180px; max-height: 420px; border-radius: 16px; overflow: hidden; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; }
+  .panda-frame img { display:block; width:100%; max-height:420px; min-height:180px; object-fit:contain; }
+  .panda-info { font-size:14px; line-height:1.7; color:rgba(255,255,255,.9); }
+  .panda-btn { margin-top:12px; padding:10px 16px; border-radius:10px; border:1px solid rgba(255,255,255,.4); background:linear-gradient(135deg,#14b8a6,#059669); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+  .panda-status { margin-top:8px; font-size:12px; color:rgba(255,255,255,.8); }
+  @media (max-width:600px) { .panda-layout { grid-template-columns:1fr; } .panda-frame img { max-height:320px; } }
+
   /* 홈 대시보드 (부곡초 퀴즈 리그전 글래스모피즘 스타일) */
   .home {
     position: absolute; inset: 0; display: none; overflow-y: auto; padding: 18px 16px 28px; color: #fff;
@@ -717,6 +728,18 @@
 <div class="stage">
   <section class="home" id="frame-home" role="tabpanel" aria-labelledby="tab-home">
     <div class="home-grid">
+      <div class="hcard panda-card">
+        <div class="h-head"><span>🐼 오늘의 랜덤 판다 사진</span><button type="button" class="h-refresh" id="pandaRefresh" onclick="loadRandomPanda()">🔄 다른 판다</button></div>
+        <div class="panda-layout">
+          <div class="panda-frame"><img id="randomPandaImage" alt="랜덤 판다 사진" loading="lazy"></div>
+          <div class="panda-info">
+            <div>귀여운 판다 사진을 랜덤으로 만나 보세요!</div>
+            <button type="button" class="panda-btn" onclick="loadRandomPanda()">🐼 새 판다 사진 보기</button>
+            <div class="panda-status" id="pandaStatus" role="status" aria-live="polite">사진을 불러오는 중...</div>
+            <div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.75)">사진 출처: <a href="https://commons.wikimedia.org/wiki/File:SanDiegoZoo-Panda.jpg" target="_blank" rel="noopener noreferrer" style="color:#d1fae5;text-decoration:underline">Wikimedia Commons</a></div>
+          </div>
+        </div>
+      </div>
       <div class="hcard span7">
         <div class="h-head"><span>🕒 지금 시각</span></div>
         <div class="h-time" id="homeTime">--:--:--</div>
@@ -725,10 +748,6 @@
       <div class="hcard span5">
         <div class="h-head"><span>🌤️ 오늘의 김천 날씨</span><button class="h-refresh" onclick="loadWeather()" aria-label="날씨 새로고침">🔄</button></div>
         <div id="homeWeather" class="h-note">날씨 정보를 불러오는 중...</div>
-      </div>
-      <div class="hcard span7">
-        <div class="h-head"><span>🍱 오늘의 급식</span></div>
-        <div id="homeMeal"></div>
       </div>
       <div class="hcard span5">
         <div class="h-head"><span>📅 오늘의 시간표</span></div>
@@ -1370,9 +1389,38 @@
   /* ===== 🏠 홈 탭에 API 실시간 카드 (날씨·미세먼지·급식·동물사진) ===== */
   (function homeInit() {
     var box = $('homeApi'); if (!box) return;
+
+    // 홈 화면의 '오늘의 시간표'도 API 설정과 동일한 나이스 시간표 데이터를 사용합니다.
+    function loadHomeTimetable() {
+      var target = $('homeTimetable');
+      if (!target || !window.C44) return;
+      var C = window.C44, c = C.cfg();
+      target.textContent = '';
+      function note(msg) { var el = document.createElement('div'); el.className = 'h-note'; el.textContent = msg; target.appendChild(el); }
+      if (!c.schul || !c.atpt) { note('시간표를 보려면 API 탭의 “급식·시간표 봇 설정”에서 학교를 설정해 주세요.'); return; }
+      note('시간표를 불러오는 중...');
+      var k = C.kst(Date.now());
+      C.fetchDay(c, k.ymd).then(function (d) {
+        if (!document.getElementById('homeTimetable')) return;
+        target.textContent = '';
+        var title = document.createElement('div'); title.className = 'h-note';
+        title.textContent = c.grade + '학년 ' + c.cls + '반 · ' + C.dateLabel(k);
+        target.appendChild(title);
+        if (!d.lessons.length) { note('오늘 등록된 시간표가 없어요. 휴업일이거나 나이스에 아직 등록되지 않았을 수 있어요.'); return; }
+        d.lessons.forEach(function (lesson) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.12)';
+          var period = document.createElement('strong'); period.textContent = lesson.no + '교시'; period.style.minWidth = '42px';
+          var name = document.createElement('span'); name.textContent = lesson.name || '과목 정보 없음';
+          row.appendChild(period); row.appendChild(name); target.appendChild(row);
+        });
+        if (d.truncated) note('인증키가 없어 일부 시간표만 표시될 수 있어요.');
+      }).catch(function () { target.textContent = ''; note('시간표를 불러오지 못했어요. API 탭의 학교·학년·반 설정과 인증키를 확인해 주세요.'); });
+    }
+    loadHomeTimetable();
     buildWeather('h_', box); buildAir('h_', box); buildSchool('h_', box, true); buildPet('h_', box);
     Object.keys(cards).forEach(function (k) { if (k.indexOf('h_') === 0 && cards[k].load) run(cards[k], cards[k].load); });
-    setInterval(function () { ['h_weather', 'h_air', 'h_school'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); }, 30 * 60 * 1000);   // 30분마다 자동 갱신
+    setInterval(function () { ['h_weather', 'h_air', 'h_school'].forEach(function (k) { if (cards[k]) run(cards[k], cards[k].load); }); loadHomeTimetable(); }, 30 * 60 * 1000);   // 30분마다 자동 갱신
   })();
 
   /* ===== 기존 탭 시스템과 연결 ===== */
@@ -1652,5 +1700,289 @@
   });
 })();
 </script>
+
+<script>
+(function () {
+  const image = document.getElementById('randomPandaImage');
+  const status = document.getElementById('pandaStatus');
+  const button = document.getElementById('pandaRefresh');
+  if (!image || !status) return;
+
+  // 기존 53장에 Wikimedia Commons에서 실제 판다 사진 100장을 추가로 불러옵니다.
+  // Commons API는 origin=*로 공개 CORS 요청을 지원합니다.
+  const pandaPhotos = [
+    { file: 'SanDiegoZoo-Panda.jpg', credit: 'San Diego Zoo panda' },
+    { file: 'Sitting panda.jpg', credit: 'Sitting panda' },
+    { file: 'Panda closeup.jpg', credit: 'Panda closeup' },
+    {
+      file: "A Happy Panda.jpg",
+      credit: "A Happy Panda"
+    },
+    {
+      file: "A Panda eating.jpg",
+      credit: "A Panda eating"
+    },
+    {
+      file: "Acrobatics giant Panda.jpg",
+      credit: "Acrobatics giant Panda"
+    },
+    {
+      file: "Bifeng Xia.jpg",
+      credit: "Bifeng Xia"
+    },
+    {
+      file: "Cuddling Pandas.jpg",
+      credit: "Cuddling Pandas"
+    },
+    {
+      file: "Fubao Panda.jpg",
+      credit: "Fubao Panda"
+    },
+    {
+      file: "Giant Panda at Edinburgh Zoo.png",
+      credit: "Giant Panda at Edinburgh Zoo"
+    },
+    {
+      file: "Giant panda enrichment at Chimelong Safari Park, Guangzhou.jpg",
+      credit: "Giant panda enrichment at Chimelong Safari Park, Guangzhou"
+    },
+    {
+      file: "Giant panda on a white background.png",
+      credit: "Giant panda on a white background"
+    },
+    {
+      file: "NZP-20070705-593MM.jpg",
+      credit: "NZP-20070705-593MM"
+    },
+    {
+      file: "NZP-20091222-189MM-000002.jpg",
+      credit: "NZP-20091222-189MM-000002"
+    },
+    {
+      file: "NZP-20100323-121MM.jpg",
+      credit: "NZP-20100323-121MM"
+    },
+    {
+      file: "Oso-Panda.webp",
+      credit: "Oso-Panda"
+    },
+    {
+      file: "Panda (15746907157).jpg",
+      credit: "Panda (15746907157)"
+    },
+    {
+      file: "Panda géant- Panda valley, Doujianyan, China.jpg",
+      credit: "Panda géant- Panda valley, Doujianyan, China"
+    },
+    {
+      file: "Panda in Everland.jpg",
+      credit: "Panda in Everland"
+    },
+    {
+      file: "Panda velká.jpg",
+      credit: "Panda velká"
+    },
+    {
+      file: "Pandas Chengdu March 2024.jpg",
+      credit: "Pandas Chengdu March 2024"
+    },
+    {
+      file: "Qinling Giant Panda, Shaanxi, China.jpg",
+      credit: "Qinling Giant Panda, Shaanxi, China"
+    },
+    {
+      file: "Russia (5532365404).jpg",
+      credit: "Russia (5532365404)"
+    },
+    {
+      file: "She Finally Decided To Sleep On Her Stomach In A Big Grass Bed (73005485).jpeg",
+      credit: "She Finally Decided To Sleep On Her Stomach In A Big Grass Bed (73005485)"
+    },
+    {
+      file: "She Walked Away Disappointed (73005483).jpeg",
+      credit: "She Walked Away Disappointed (73005483)"
+    },
+    {
+      file: "Tokyo-Uenohirokouji---2024-11-27 045.jpg",
+      credit: "Tokyo-Uenohirokouji---2024-11-27 045"
+    },
+    {
+      file: "ジャイアントパンダ5E2F887A-1C52-4083-9919-77CF8DFD06DE.jpg",
+      credit: "ジャイアントパンダ5E2F887A-1C52-4083-9919-77CF8DFD06DE"
+    },
+    {
+      file: "1 panda trio sichuan china 2011.jpg",
+      credit: "1 panda trio sichuan china 2011"
+    },
+    {
+      file: "1 year old Panda Cubs - Panda Research Centre, Chengdu (1482978661).jpg",
+      credit: "1 year old Panda Cubs - Panda Research Centre, Chengdu (1482978661)"
+    },
+    {
+      file: "A picture of a Panda.jpg",
+      credit: "A picture of a Panda"
+    },
+    {
+      file: "Baby Pandas.JPG",
+      credit: "Baby Pandas"
+    },
+    {
+      file: "Chengdu - chovná stanice pandy velké - panoramio (1).jpg",
+      credit: "Chengdu - chovná stanice pandy velké - panoramio (1)"
+    },
+    {
+      file: "Chengdu - chovná stanice pandy velké - panoramio.jpg",
+      credit: "Chengdu - chovná stanice pandy velké - panoramio"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 01.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 01"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 02.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 02"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 03.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 03"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 04.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 04"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 05.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 05"
+    },
+    {
+      file: "Chengdu Chengdu Panda Reserve Base Große Pandas 06.jpg",
+      credit: "Chengdu Chengdu Panda Reserve Base Große Pandas 06"
+    },
+    {
+      file: "Giant Panda at Chongqing Zoo image 1.jpg",
+      credit: "Giant Panda at Chongqing Zoo image 1"
+    },
+    {
+      file: "Giant Panda at Chongqing Zoo image 2.jpg",
+      credit: "Giant Panda at Chongqing Zoo image 2"
+    },
+    {
+      file: "Giant Panda at Chongqing Zoo image 3.jpg",
+      credit: "Giant Panda at Chongqing Zoo image 3"
+    },
+    {
+      file: "20250509 Giant panda in the Sichuan University Museum.jpg",
+      credit: "20250509 Giant panda in the Sichuan University Museum"
+    },
+    {
+      file: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 01.jpg",
+      credit: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 01"
+    },
+    {
+      file: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 02.jpg",
+      credit: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 02"
+    },
+    {
+      file: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 03.jpg",
+      credit: "HK Kwun Tong Road outdoor square Yue Man Square 大熊貓 Giant Panda CNY Chinese New Year January 2025 R12S 03"
+    },
+    {
+      file: "Giant Panda Ling Ling (1985) by Jessie Cohen. Original from Smithsonian's National Zoo. Digitally enhanced by rawpixel. (51128445057).jpg",
+      credit: "Giant Panda Ling Ling (1985) by Jessie Cohen. Original from Smithsonian's National Zoo. Digitally enhanced by rawpixel. (51128445057)"
+    },
+    {
+      file: "Hsing-Hsing playfully nips Ling-Ling on the neck after mating, March 18, 1983.jpg",
+      credit: "Hsing-Hsing playfully nips Ling-Ling on the neck after mating, March 18, 1983"
+    },
+    {
+      file: "Xiang Xiang at Ya’an Panda Base.png",
+      credit: "Xiang Xiang at Ya’an Panda Base"
+    },
+    {
+      file: "Xiang Xiang at Yaan Base of CCRCGP.jpg",
+      credit: "Xiang Xiang at Yaan Base of CCRCGP"
+    },
+    {
+      file: "BaoBao the Panda having a snack in the snow.jpg",
+      credit: "BaoBao the Panda having a snack in the snow"
+    },
+    {
+      file: "Panda.jpg",
+      credit: "Panda"
+    }
+  ].map(photo => {
+    const encoded = encodeURIComponent(photo.file).replace(/%2F/gi, '/');
+    return {
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encoded + '?width=1000',
+      credit: photo.credit,
+      page: 'https://commons.wikimedia.org/wiki/File:' + encoded
+    };
+  });
+  // 판다 사진에 글씨가 들어간 포스터·안내 이미지가 섞이지 않도록
+  // 범주에서 임의의 파일을 추가하지 않고, 위의 선별된 사진 목록만 사용합니다.
+  async function loadExtraPandaPhotos() {
+    status.textContent = '선별된 판다 사진 목록을 준비했어요! 🐼';
+  }
+
+  let lastPhotoIndex = -1;
+  let triedIndices = [];
+  let currentAttempt = 0;
+
+  function pickRandomIndex() {
+    if (pandaPhotos.length < 2) return 0;
+    let index;
+    do { index = Math.floor(Math.random() * pandaPhotos.length); }
+    while (index === lastPhotoIndex);
+    return index;
+  }
+
+  function tryPhoto(index, attempts) {
+    if (attempts >= pandaPhotos.length) {
+      status.textContent = '사진 서버에 연결하지 못했어요. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.';
+      if (button) button.disabled = false;
+      return;
+    }
+    if (triedIndices.includes(index)) {
+      index = (index + 1) % pandaPhotos.length;
+      while (triedIndices.includes(index) && triedIndices.length < pandaPhotos.length) {
+        index = (index + 1) % pandaPhotos.length;
+      }
+    }
+    triedIndices.push(index);
+    const photo = pandaPhotos[index];
+    const attemptId = ++currentAttempt;
+    status.textContent = '실제 판다 사진을 불러오는 중...';
+    image.onload = function () {
+      if (attemptId !== currentAttempt) return;
+      lastPhotoIndex = index;
+      image.alt = '실제 판다 사진: ' + photo.credit;
+      image.style.objectFit = 'contain';
+      status.innerHTML = '실제 판다 사진이에요! 🐼 · 현재 ' + pandaPhotos.length + '장 중 선택 · <a href="' + photo.page + '" target="_blank" rel="noopener noreferrer" style="color:#d1fae5;text-decoration:underline">사진 출처</a>';
+      if (button) button.disabled = false;
+    };
+    image.onerror = function () {
+      if (attemptId !== currentAttempt) return;
+      if (triedIndices.length < pandaPhotos.length) {
+        let next = (index + 1) % pandaPhotos.length;
+        while (triedIndices.includes(next) && triedIndices.length < pandaPhotos.length) next = (next + 1) % pandaPhotos.length;
+        tryPhoto(next, attempts + 1);
+      } else {
+        status.textContent = '사진 서버에 연결하지 못했어요. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.';
+        if (button) button.disabled = false;
+      }
+    };
+    image.src = photo.url;
+  }
+
+  window.loadRandomPanda = function () {
+    triedIndices = [];
+    if (button) button.disabled = true;
+    const index = pickRandomIndex();
+    tryPhoto(index, 0);
+  };
+  loadExtraPandaPhotos().finally(function () { window.loadRandomPanda(); });
+})();
+</script>
+
 </body>
 </html>
