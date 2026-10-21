@@ -579,6 +579,57 @@
 .sn-cmt b { margin-right:6px; } .sn-cmt button { margin-left:6px; border:0; background:transparent; color:#fecaca; cursor:pointer; font-size:11px; }
 .sn-cform { display:flex; gap:6px; margin-top:8px; } .sn-cform input { flex:1; }
 .sn-empty { text-align:center; opacity:.8; padding:30px 0; }
+
+/* 우리반 SNS 게시물: 가로 방향 그리드, 정사각형 카드 */
+#snFeed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+  align-items: stretch;
+  direction: ltr;
+}
+#snFeed > .sn-card {
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#snFeed > .sn-card .sn-top { flex: 0 0 auto; min-width: 0; }
+#snFeed > .sn-card .sn-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 8px 0;
+}
+#snFeed > .sn-card .sn-more {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.15);
+  color: #fff; border-radius: 8px; padding: 5px 10px;
+  font: inherit; font-size: 12px; cursor: pointer; margin-bottom: 7px;
+}
+#snFeed > .sn-card .sn-acts { flex: 0 0 auto; }
+#snFeed > .sn-card .sn-cmts,
+#snFeed > .sn-card .sn-cform { display: none; }
+#snFeed > .sn-card.sn-expanded { overflow-y: auto; }
+#snFeed > .sn-card.sn-expanded .sn-body { flex: 0 0 auto; overflow: visible; }
+#snFeed > .sn-card.sn-expanded .sn-cmts,
+#snFeed > .sn-card.sn-expanded .sn-cform { display: flex; }
+#snFeed > .sn-card.sn-expanded .sn-more { position: sticky; bottom: 0; }
+#snFeed > .sn-empty { grid-column: 1 / -1; }
+@media (max-width: 520px) {
+  #snFeed { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #snFeed > .sn-card { padding: 10px; }
+  #snFeed > .sn-card .sn-nick { overflow-wrap: anywhere; }
+  #snFeed > .sn-card .sn-time { font-size: 10px; }
+  #snFeed > .sn-card .sn-body { font-size: 13px; }
+}
+
 </style>
 <style>
 .tab[data-id="minecraft"] { --accent: #4ade80; }
@@ -1567,6 +1618,15 @@
         top.appendChild(d);
       }
       card.appendChild(top); card.appendChild(h('div', 'sn-body', p.text));
+      var more = h('button', 'sn-more', '더보기 ＋');
+      more.type = 'button';
+      more.setAttribute('aria-expanded', 'false');
+      more.onclick = function () {
+        var expanded = card.classList.toggle('sn-expanded');
+        more.textContent = expanded ? '접기 −' : '더보기 ＋';
+        more.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      };
+      card.appendChild(more);
       var acts = h('div', 'sn-acts'), lk = h('button', 'sn-act' + (liked ? ' on' : ''), (liked ? '❤️ ' : '🤍 ') + likedBy.length);
       lk.onclick = function () {
         mutate(function (list) {
